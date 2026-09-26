@@ -1,0 +1,175 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    @apply bg-slate-950 text-slate-100 font-sans antialiased;
+    margin: 0;
+    padding: 0;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-slate-800;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-slate-600 rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-slate-500;
+  }
+}
+
+/* Leaflet map styles */
+.leaflet-container {
+  @apply rounded-lg;
+  font-family: inherit !important;
+}
+
+.leaflet-popup-content-wrapper {
+  @apply bg-slate-800 text-slate-100 border border-slate-700 rounded-xl shadow-2xl;
+}
+
+.leaflet-popup-tip {
+  @apply bg-slate-800;
+}
+
+.leaflet-popup-content {
+  @apply text-slate-100 m-3;
+}
+
+.leaflet-control-zoom a {
+  @apply bg-slate-800 text-slate-100 border-slate-700;
+}
+
+.leaflet-control-zoom a:hover {
+  @apply bg-slate-700;
+}
+
+/* Custom marker styles */
+.complaint-marker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  transition: transform 0.2s ease;
+}
+
+.complaint-marker:hover {
+  transform: scale(1.2);
+}
+
+/* Pulse animation for live indicators */
+@keyframes live-pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.1);
+  }
+}
+
+.live-dot {
+  animation: live-pulse 1.5s ease-in-out infinite;
+}
+
+/* Camera scan line */
+@keyframes scan-line {
+  0% { top: 0%; }
+  100% { top: 100%; }
+}
+
+.scan-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(20, 184, 166, 0.8), transparent);
+  animation: scan-line 2s linear infinite;
+}
+
+/* Detection box pulse */
+@keyframes detection-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+.detection-box {
+  animation: detection-pulse 1s ease-in-out infinite;
+}
+
+/* Stat counter animation */
+@keyframes count-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.count-up {
+  animation: count-up 0.6s ease-out forwards;
+}
+
+/* Demo walkthrough overlay */
+.walkthrough-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 9998;
+  pointer-events: none;
+}
+
+.walkthrough-tooltip {
+  position: fixed;
+  z-index: 9999;
+  pointer-events: all;
+}
+
+/* Sidebar transition */
+.sidebar-transition {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Card hover effect */
+.card-hover {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+/* Table row hover */
+.table-row-hover:hover {
+  @apply bg-slate-700/50 cursor-pointer;
+}
+
+/* Status timeline line */
+.timeline-line {
+  position: absolute;
+  left: 11px;
+  top: 24px;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(to bottom, #14b8a6, #1e293b);
+}
+
+/* Badge pulse for new status */
+.badge-new {
+  @apply bg-blue-500/20 text-blue-400 border border-blue-500/30;
+  animation: live-pulse 2s ease-in-out infinite;
+}
