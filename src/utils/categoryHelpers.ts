@@ -5,23 +5,25 @@ import type { ComplaintCategory, ComplaintStatus, ComplaintSeverity } from '../t
 const LABELS: Record<string, string> = {
   // Frontend code-style keys
   pothole: 'Pothole',
-  garbage: 'Garbage Dump',
+  garbage: 'Garbage Accumulation',
   dustbin: 'Overflowing Dustbin',
   fallen_tree: 'Fallen Tree',
   waterlogging: 'Waterlogging',
-  streetlight: 'Broken Streetlight',
-  other: 'Other Issue',
+  streetlight: 'Damaged Streetlight',
+  other: 'Other Civic Hazard',
   // Backend / CV service display-string keys
-  'Pothole': 'Pothole',
-  'Garbage': 'Garbage Dump',
-  'Dustbin': 'Overflowing Dustbin',
+  Pothole: 'Pothole',
+  Garbage: 'Garbage Accumulation',
+  Dustbin: 'Overflowing Dustbin',
   'Fallen Tree': 'Fallen Tree',
-  'Waterlogging': 'Waterlogging',
-  'Broken Streetlight': 'Broken Streetlight',
-  'Open Drain': 'Open Drain',
+  Waterlogging: 'Waterlogging',
+  'Broken Streetlight': 'Damaged Streetlight',
+  'Open Drain': 'Open / Blocked Drain',
   'Illegal Dumping': 'Illegal Dumping',
-  'Stray Animals': 'Stray Animals',
+  'Stray Animals': 'Stray Animal Hazard',
   'Road Damage': 'Road Damage',
+  'Road Obstruction': 'Road Obstruction',
+  'Other Civic Hazard': 'Other Civic Hazard',
 }
 
 const EMOJIS: Record<string, string> = {
@@ -32,16 +34,18 @@ const EMOJIS: Record<string, string> = {
   waterlogging: '💧',
   streetlight: '💡',
   other: '⚠️',
-  'Pothole': '🕳️',
-  'Garbage': '🗑️',
-  'Dustbin': '📦',
+  Pothole: '🕳️',
+  Garbage: '🗑️',
+  Dustbin: '📦',
   'Fallen Tree': '🌳',
-  'Waterlogging': '💧',
+  Waterlogging: '💧',
   'Broken Streetlight': '💡',
   'Open Drain': '🚿',
   'Illegal Dumping': '🗑️',
   'Stray Animals': '🐕',
   'Road Damage': '🛣️',
+  'Road Obstruction': '🚧',
+  'Other Civic Hazard': '⚠️',
 }
 
 export function categoryLabel(category: ComplaintCategory | string): string {
@@ -49,23 +53,28 @@ export function categoryLabel(category: ComplaintCategory | string): string {
 }
 
 export function categoryEmoji(category: ComplaintCategory | string): string {
-  return EMOJIS[category] ?? '❓'
+  return EMOJIS[category] ?? '⚠️'
 }
 
 export function statusLabel(status: ComplaintStatus): string {
   const labels: Record<ComplaintStatus, string> = {
-    new: 'New',
+    new: 'Submitted',
     assigned: 'Assigned',
     in_progress: 'In Progress',
-    awaiting_verification: 'Awaiting Verification',
+    awaiting_verification: 'Under Review',
     resolved: 'Resolved',
-    closed: 'Closed',
+    closed: 'Resolved (Closed)',
   }
   return labels[status] ?? status
 }
 
-export function statusVariant(status: ComplaintStatus): 'info' | 'indigo' | 'warning' | 'purple' | 'success' | 'gray' {
-  const variants: Record<ComplaintStatus, 'info' | 'indigo' | 'warning' | 'purple' | 'success' | 'gray'> = {
+export function statusVariant(
+  status: ComplaintStatus
+): 'info' | 'indigo' | 'warning' | 'purple' | 'success' | 'gray' {
+  const variants: Record<
+    ComplaintStatus,
+    'info' | 'indigo' | 'warning' | 'purple' | 'success' | 'gray'
+  > = {
     new: 'info',
     assigned: 'indigo',
     in_progress: 'warning',
@@ -76,7 +85,9 @@ export function statusVariant(status: ComplaintStatus): 'info' | 'indigo' | 'war
   return variants[status] ?? 'gray'
 }
 
-export function severityVariant(severity: ComplaintSeverity | string): 'success' | 'warning' | 'error' {
+export function severityVariant(
+  severity: ComplaintSeverity | string
+): 'success' | 'warning' | 'error' {
   const variants: Record<string, 'success' | 'warning' | 'error'> = {
     low: 'success',
     medium: 'warning',

@@ -1,1147 +1,1957 @@
-import { useState, useEffect, useRef } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import React, { useState, useRef, useEffect, useCallback } from 'react'
+import { Link } from 'react-router-dom'
 import {
-  Camera,
-  Upload,
-  MapPin,
-  CheckCircle2,
-  AlertTriangle,
+  Send,
   Search,
-  Shield,
-  Eye,
-  Sparkles,
-  ArrowRight,
+  MapPin,
+  Camera,
+  CheckCircle2,
   Clock,
-  Building2,
+  AlertTriangle,
   Copy,
-  ExternalLink,
-  ChevronRight,
-  Info,
-  Layers,
-  Phone,
-  Crosshair,
-  FileText,
-  Video,
+  Check,
+  Navigation,
+  Upload,
+  X,
+  Sparkles,
+  Building2,
+  ArrowLeft,
+  Eye,
+  Loader2,
+  RefreshCw,
+  GitMerge,
+  UserCheck,
+  UserPlus,
+  LogOut,
+  History,
+  FileCheck2,
 } from 'lucide-react'
-import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet'
-import L from 'leaflet'
+import { MapContainer } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
-import { classifyCivicIssue, uploadCitizenMedia, submitCitizenComplaint, trackComplaintPublic, type AIClassificationResult } from '../api/citizen'
-import { getComplaints } from '../api/complaints'
-import type { Complaint } from '../types'
-import { categoryLabel, categoryEmoji } from '../utils/categoryHelpers'
-import { safeFormat, safeFormatDistanceToNow } from '../utils/dateHelpers'
-import LoadingSpinner from '../components/UI/LoadingSpinner'
+import {
+  createPublicComplaint,
+  trackPublicComplaint,
+  classifyCitizenReport,
+  uploadCitizenMedia,
+  checkCitizenDuplicates,
+  confirmCitizenDuplicate,
+  registerCitizenAccount,
+  loginCitizenAccount,
+  getCitizenMyComplaints,
+  type AIClassificationResponse,
+  type PotentialDuplicateWarningItem,
+  type CitizenUserSession,
+} from '../api/citizen'
+import {
+  DEFAULT_CITY_CENTER,
+  STREET_LEVEL_ZOOM,
+  MapInvalidator,
+  SafeTileLayer,
+  MapInteractiveController,
+  MapOverlayToolbar,
+  SelectedLocationPin,
+  MapSearchBox,
+  type GeocodeResult,
+} from '../components/Map/InteractiveMap'
+import type { Complaint, ComplaintSeverity } from '../types'
 
-const PUNE_CENTER: [number, number] = [18.5204, 73.8567]
-
-const SAMPLE_ISSUES = [
-  {
-    title: 'Swargate Deep Pothole',
-    category: 'Pothole',
-    description: 'Deep road surface crater approx 2ft wide on Swargate-Bibwewadi main road near petrol pump. High collision risk for two-wheelers.',
-    lat: 18.4985,
-    lng: 73.8542,
-    address: 'Swargate-Bibwewadi Road, near Bharat Petroleum, Pune',
-    image: 'https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?w=800&auto=format&fit=crop&q=80',
-    mediaType: 'image' as const,
-  },
-  {
-    title: 'Hadapsar Garbage Mound',
-    category: 'Garbage',
-    description: 'Overflowing municipal garbage dumpster and open waste spill on footpath near Hadapsar vegetable market. Strong odor and sanitation hazard.',
-    lat: 18.5089,
-    lng: 73.9259,
-    address: 'Hadapsar Gadital Market Road, Hadapsar, Pune',
-    image: 'https://images.unsplash.com/photo-1605600659873-d808a13e4d2a?w=800&auto=format&fit=crop&q=80',
-    mediaType: 'image' as const,
-  },
-  {
-    title: 'Shivajinagar Stormwater Drain Blockage',
-    category: 'Waterlogging',
-    description: 'Stormwater drain overflowing with standing stagnant water 1.5 ft deep after rain, completely blocking carriage way near bus station.',
-    lat: 18.5314,
-    lng: 73.8446,
-    address: 'Near Shivajinagar ST Stand, Pune',
-    image: 'https://images.unsplash.com/photo-1547683905-f686c993aae5?w=800&auto=format&fit=crop&q=80',
-    mediaType: 'image' as const,
-  },
-  {
-    title: 'Viman Nagar Fallen Bough',
-    category: 'Fallen Tree',
-    description: 'Large gulmohar tree branch snapped and resting across lane 2, blocking vehicles and touching overhead electric cabling.',
-    lat: 18.5679,
-    lng: 73.9143,
-    address: 'Lane 2, Viman Nagar, near Symbiosis Road, Pune',
-    image: 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=800&auto=format&fit=crop&q=80',
-    mediaType: 'image' as const,
-  },
+const ISSUE_CATEGORIES = [
+  { id: 'Pothole', label: 'Potholes', dept: 'Roads & Infrastructure' },
+  { id: 'Garbage', label: 'Garbage', dept: 'Sanitation & Waste' },
+  { id: 'Waterlogging', label: 'Waterlogging', dept: 'Drainage & Waterways' },
+  { id: 'Broken Streetlight', label: 'Damaged Streetlight', dept: 'Electrical & Lighting' },
+  { id: 'Fallen Tree', label: 'Fallen Tree', dept: 'Parks & Horticulture' },
+  { id: 'Road Obstruction', label: 'Road Obstruction', dept: 'Roads & Infrastructure' },
+  { id: 'Road Damage', label: 'Road Damage', dept: 'Roads & Infrastructure' },
+  { id: 'Open Drain', label: 'Open Drain', dept: 'Drainage & Waterways' },
+  { id: 'Other Civic Hazard', label: 'Other Hazard', dept: 'Roads & Infrastructure' },
 ]
 
-function MapDraggablePin({
-  position,
-  onPositionChange,
-}: {
-  position: [number, number]
-  onPositionChange: (pos: [number, number]) => void
-}) {
-  useMapEvents({
-    click(e) {
-      onPositionChange([e.latlng.lat, e.latlng.lng])
-    },
-  })
+const ALLOWED_IMAGE_MIME_TYPES = new Set([
+  'image/jpeg',
+  'image/jpg',
+  'image/png',
+  'image/webp',
+  'image/gif',
+])
+const ALLOWED_VIDEO_MIME_TYPES = new Set(['video/mp4', 'video/webm', 'video/quicktime'])
+const ALLOWED_FILE_EXTENSIONS = new Set([
+  '.jpg',
+  '.jpeg',
+  '.png',
+  '.webp',
+  '.gif',
+  '.mp4',
+  '.webm',
+  '.mov',
+])
+const MAX_MEDIA_SIZE_BYTES = 20 * 1024 * 1024 // 20 MB
 
-  const icon = L.divIcon({
-    className: '',
-    html: `<div style="width:24px;height:24px;border-radius:50%;background:#0d9488;border:3px solid #ffffff;box-shadow:0 0 10px rgba(13,148,136,0.6);display:flex;align-items:center;justify-content:center"><div style="width:6px;height:6px;border-radius:50%;background:#ffffff"></div></div>`,
-    iconSize: [24, 24],
-    iconAnchor: [12, 12],
-  })
-
-  return <Marker position={position} icon={icon} />
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+  return `${(bytes / (1024 * 1024)).toFixed(2)} MB`
 }
 
-function FlyToPosition({ position }: { position: [number, number] }) {
-  const map = useMap()
-  useEffect(() => {
-    map.setView(position, 15)
-  }, [position, map])
-  return null
+function readFileAsDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        resolve(reader.result)
+      } else {
+        reject(new Error('Failed to generate FileReader preview.'))
+      }
+    }
+    reader.onerror = () => reject(new Error('Failed to read selected file.'))
+    reader.readAsDataURL(file)
+  })
 }
+
+const STATUS_LABELS: Record<string, { label: string; step: number }> = {
+  new: { label: 'Submitted', step: 1 },
+  awaiting_verification: { label: 'Under Review', step: 2 },
+  assigned: { label: 'Assigned', step: 3 },
+  in_progress: { label: 'In Progress', step: 4 },
+  resolved: { label: 'Resolved', step: 5 },
+  closed: { label: 'Resolved', step: 5 },
+}
+
+const CITIZEN_SAVED_IDS_KEY = 'civiceye_citizen_complaint_ids'
+const CITIZEN_SESSION_KEY = 'civiceye_citizen_session'
 
 export default function CitizenHome() {
-  const [searchParams, setSearchParams] = useSearchParams()
-  const activeTabFromUrl = searchParams.get('tab') as 'report' | 'track' | 'feed' | null
-  const [activeTab, setActiveTab] = useState<'report' | 'track' | 'feed'>(activeTabFromUrl || 'report')
+  const [activeTab, setActiveTab] = useState<'submit' | 'track'>('submit')
 
-  // Form states
+  // Optional Citizen Account State (Citizens can submit anonymously OR register/sign in to track history)
+  const [citizenSession, setCitizenSession] = useState<CitizenUserSession | null>(() => {
+    try {
+      const raw = localStorage.getItem(CITIZEN_SESSION_KEY)
+      return raw ? JSON.parse(raw) : null
+    } catch {
+      return null
+    }
+  })
+  const [showAuthModal, setShowAuthModal] = useState<boolean>(false)
+  const [authMode, setAuthMode] = useState<'login' | 'register'>('login')
+  const [authFullName, setAuthFullName] = useState<string>('')
+  const [authEmail, setAuthEmail] = useState<string>('')
+  const [authPassword, setAuthPassword] = useState<string>('')
+  const [authError, setAuthError] = useState<string | null>(null)
+  const [isAuthSubmitting, setIsAuthSubmitting] = useState<boolean>(false)
+
+  // Citizen Complaint History State
+  const [savedComplaintIds, setSavedComplaintIds] = useState<string[]>(() => {
+    try {
+      const raw = localStorage.getItem(CITIZEN_SAVED_IDS_KEY)
+      const parsed = raw ? JSON.parse(raw) : ['CE-202609-0001', 'CE-202609-0005']
+      return Array.isArray(parsed) ? parsed : ['CE-202609-0001', 'CE-202609-0005']
+    } catch {
+      return ['CE-202609-0001', 'CE-202609-0005']
+    }
+  })
+  const [myComplaintsHistory, setMyComplaintsHistory] = useState<Complaint[]>([])
+
+  // Submit Complaint State
+  const [category, setCategory] = useState<string>('Pothole')
+  const [manualCategoryOverride, setManualCategoryOverride] = useState<boolean>(false)
+  const [severity, setSeverity] = useState<ComplaintSeverity>('medium')
+  const [description, setDescription] = useState<string>('')
+  const [address, setAddress] = useState<string>('')
+  const [latitude, setLatitude] = useState<number>(DEFAULT_CITY_CENTER[0])
+  const [longitude, setLongitude] = useState<number>(DEFAULT_CITY_CENTER[1])
+  const [manualLatInput, setManualLatInput] = useState<string>(DEFAULT_CITY_CENTER[0].toFixed(5))
+  const [manualLngInput, setManualLngInput] = useState<string>(DEFAULT_CITY_CENTER[1].toFixed(5))
+  const [locationSource, setLocationSource] = useState<
+    'default_map' | 'gps' | 'manual_pin' | 'search' | 'manual_coords'
+  >('default_map')
+  const [isLocatingGps, setIsLocatingGps] = useState<boolean>(false)
+  const [gpsNotice, setGpsNotice] = useState<{
+    type: 'info' | 'success' | 'warning'
+    text: string
+  } | null>(null)
+  const [flyTarget, setFlyTarget] = useState<{
+    lat: number
+    lng: number
+    zoom?: number
+    seq: number
+  } | null>(null)
+  const [honeypot, setHoneypot] = useState<string>('')
+
+  // Optional Media & AI Classification State
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const objectUrlRef = useRef<string | null>(null)
   const [mediaFile, setMediaFile] = useState<File | null>(null)
   const [mediaPreview, setMediaPreview] = useState<string | null>(null)
-  const [mediaType, setMediaType] = useState<'image' | 'video'>('image')
-  const [description, setDescription] = useState('')
-  const [position, setPosition] = useState<[number, number]>(PUNE_CENTER)
-  const [address, setAddress] = useState('Pune Municipal Area, Maharashtra')
-  const [isDetectingLocation, setIsDetectingLocation] = useState(false)
-  const [locationDetected, setLocationDetected] = useState(false)
-  const [isAnonymous, setIsAnonymous] = useState(true)
-  const [contactName, setContactName] = useState('')
-  const [contactPhone, setContactPhone] = useState('')
+  const [mediaDataUrl, setMediaDataUrl] = useState<string | null>(null)
+  const [uploadedMediaUrl, setUploadedMediaUrl] = useState<string | null>(null)
+  const [mediaError, setMediaError] = useState<string | null>(null)
+  const [isUploading, setIsUploading] = useState<boolean>(false)
+  const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false)
+  const [aiResult, setAiResult] = useState<AIClassificationResponse | null>(null)
+  const [aiError, setAiError] = useState<string | null>(null)
 
-  // AI Classification state
-  const [isAiAnalyzing, setIsAiAnalyzing] = useState(false)
-  const [aiResult, setAiResult] = useState<AIClassificationResult | null>(null)
-  const [selectedCategory, setSelectedCategory] = useState('Pothole')
-  const [selectedDeptId, setSelectedDeptId] = useState(1)
-  const [selectedDeptName, setSelectedDeptName] = useState('Roads & Infrastructure')
+  // Feature A: Duplicate Complaint Detection State
+  const [duplicateWarnings, setDuplicateWarnings] = useState<PotentialDuplicateWarningItem[]>([])
+  const [isCheckingDuplicates, setIsCheckingDuplicates] = useState<boolean>(false)
+  const [isConfirmingDuplicateId, setIsConfirmingDuplicateId] = useState<string | null>(null)
 
-  // Submission state
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [submitSuccess, setSubmitSuccess] = useState(false)
-  const [generatedTrackingId, setGeneratedTrackingId] = useState<string | null>(null)
-  const [submitError, setSubmitError] = useState('')
-  const [copiedId, setCopiedId] = useState(false)
+  // Submission Result State
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
+  const [submittedComplaint, setSubmittedComplaint] = useState<Complaint | null>(null)
+  const [copiedId, setCopiedId] = useState<boolean>(false)
 
-  // Tracking state
-  const [trackSearchId, setTrackSearchId] = useState(searchParams.get('id') || '')
+  // Track Complaint State
+  const [trackCode, setTrackCode] = useState<string>('')
+  const [isTracking, setIsTracking] = useState<boolean>(false)
+  const [trackError, setTrackError] = useState<string | null>(null)
   const [trackedComplaint, setTrackedComplaint] = useState<Complaint | null>(null)
-  const [isTrackingLoading, setIsTrackingLoading] = useState(false)
-  const [trackError, setTrackError] = useState('')
-  const [recentTrackingIds, setRecentTrackingIds] = useState<string[]>([])
 
-  // Public Feed state
-  const [feedComplaints, setFeedComplaints] = useState<Complaint[]>([])
-  const [isFeedLoading, setIsFeedLoading] = useState(false)
-  const [feedCategoryFilter, setFeedCategoryFilter] = useState('all')
-
-  const fileInputRef = useRef<HTMLInputElement>(null)
-  const videoInputRef = useRef<HTMLInputElement>(null)
-
-  // Load recent tracking IDs from localStorage
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem('civiceye_citizen_tracking_ids')
-      if (stored) {
-        setRecentTrackingIds(JSON.parse(stored))
+  const recordSavedComplaintId = useCallback((cid: string) => {
+    setSavedComplaintIds((prev) => {
+      const next = [cid, ...prev.filter((x) => x.toUpperCase() !== cid.toUpperCase())].slice(0, 15)
+      try {
+        localStorage.setItem(CITIZEN_SAVED_IDS_KEY, JSON.stringify(next))
+      } catch {
+        // ignore storage errors
       }
+      return next
+    })
+  }, [])
+
+  const refreshCitizenHistory = useCallback(async () => {
+    try {
+      const list = await getCitizenMyComplaints(
+        savedComplaintIds,
+        citizenSession?.access_token || null
+      )
+      setMyComplaintsHistory(list)
     } catch {
-      // ignore
+      // ignore background history errors
+    }
+  }, [savedComplaintIds, citizenSession?.access_token])
+
+  useEffect(() => {
+    refreshCitizenHistory()
+  }, [refreshCitizenHistory, activeTab])
+
+  // Clean up any temporary object URL on unmount
+  useEffect(() => {
+    return () => {
+      if (objectUrlRef.current) {
+        URL.revokeObjectURL(objectUrlRef.current)
+        objectUrlRef.current = null
+      }
     }
   }, [])
 
-  // Auto trigger tracking if ID is present in URL
-  useEffect(() => {
-    const urlId = searchParams.get('id')
-    if (urlId) {
-      setTrackSearchId(urlId)
-      setActiveTab('track')
-      handleTrackLookup(urlId)
-    }
-  }, [searchParams])
-
-  // Sync tab with URL
-  const switchTab = (tab: 'report' | 'track' | 'feed') => {
-    setActiveTab(tab)
-    setSearchParams({ tab })
-  }
-
-  // Load public feed when active
-  useEffect(() => {
-    if (activeTab === 'feed') {
-      setIsFeedLoading(true)
-      getComplaints({ page_size: 20 })
-        .then((res) => {
-          setFeedComplaints(res.items || [])
-        })
-        .catch(() => setFeedComplaints([]))
-        .finally(() => setIsFeedLoading(false))
-    }
-  }, [activeTab])
-
-  // Automatic Location Detection with User Permission
-  const detectUserLocation = () => {
-    if (!navigator.geolocation) {
-      alert('Geolocation is not supported by your browser.')
-      return
-    }
-
-    setIsDetectingLocation(true)
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const lat = pos.coords.latitude
-        const lng = pos.coords.longitude
-        setPosition([lat, lng])
-        setLocationDetected(true)
-        setIsDetectingLocation(false)
-        setAddress(`GPS Location (${lat.toFixed(4)}, ${lng.toFixed(4)}) · Pune Region`)
-      },
-      (err) => {
-        setIsDetectingLocation(false)
-        console.warn('Geolocation permission denied or timed out:', err)
-        // Keep default Pune position and notify quietly
-        setAddress('Pune City Center (Tap on map to pin exact spot)')
-      },
-      { timeout: 10000, enableHighAccuracy: true }
-    )
-  }
-
-  // Handle Image/Video file selection
-  const handleFileSelected = async (file: File, type: 'image' | 'video') => {
-    setMediaFile(file)
-    setMediaType(type)
-    setSubmitError('')
-
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      setMediaPreview(e.target?.result as string)
-    }
-    reader.readAsDataURL(file)
-
-    // Trigger automatic location prompt if not yet detected
-    if (!locationDetected) {
-      detectUserLocation()
-    }
-
-    // Trigger AI classification automatically on the uploaded media & text
-    runAiClassification(file.name, type, description)
-  }
-
-  // Pick sample issue
-  const handleSelectSample = (sample: typeof SAMPLE_ISSUES[0]) => {
-    setMediaFile(null)
-    setMediaPreview(sample.image)
-    setMediaType(sample.mediaType)
-    setDescription(sample.description)
-    setPosition([sample.lat, sample.lng])
-    setAddress(sample.address)
-    setLocationDetected(true)
-    setSubmitError('')
-
-    runAiClassification(sample.title, sample.mediaType, sample.description)
-  }
-
-  // AI Classification engine
-  const runAiClassification = async (fileName: string, type: string, currentDesc: string) => {
-    setIsAiAnalyzing(true)
-    try {
-      const res = await classifyCivicIssue({
-        media_name: fileName,
-        media_type: type,
-        text: currentDesc,
-      })
-      setAiResult(res)
-      setSelectedCategory(res.category)
-      setSelectedDeptId(res.department_id)
-      setSelectedDeptName(res.department_name)
-      if (!description.trim()) {
-        setDescription(res.suggested_description)
-      }
-    } catch (e) {
-      console.error('AI classification failed', e)
-    } finally {
-      setIsAiAnalyzing(false)
+  const revokeCurrentObjectUrl = () => {
+    if (objectUrlRef.current) {
+      URL.revokeObjectURL(objectUrlRef.current)
+      objectUrlRef.current = null
     }
   }
 
-  // Submit Complaint
-  const handleSubmitReport = async (e: React.FormEvent) => {
+  // Citizen Auth Handlers
+  const handleCitizenAuthSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setSubmitError('')
-
-    if (!description.trim()) {
-      setSubmitError('Please enter a brief description of the civic problem.')
-      return
-    }
-
-    setIsSubmitting(true)
+    setAuthError(null)
+    setIsAuthSubmitting(true)
     try {
-      let uploadedMediaUrl: string | undefined = mediaPreview?.startsWith('http') ? mediaPreview : undefined
-
-      // If citizen selected a local file, upload it
-      if (mediaFile) {
-        try {
-          const uploadRes = await uploadCitizenMedia(mediaFile)
-          uploadedMediaUrl = uploadRes.url
-        } catch {
-          // If upload fails, use fallback preview or standard sample URL
-          uploadedMediaUrl = mediaPreview?.startsWith('data:') ? undefined : mediaPreview || undefined
-        }
-      }
-
-      const res = await submitCitizenComplaint({
-        category: selectedCategory,
-        description: description.trim(),
-        latitude: position[0],
-        longitude: position[1],
-        address: address || `Pune, Maharashtra (${position[0].toFixed(4)}, ${position[1].toFixed(4)})`,
-        severity: aiResult?.severity || 'medium',
-        media_url: uploadedMediaUrl,
-        media_type: mediaType,
-        is_anonymous: isAnonymous,
-        contact_name: isAnonymous ? undefined : contactName.trim() || undefined,
-        contact_phone: isAnonymous ? undefined : contactPhone.trim() || undefined,
-      })
-
-      const newTrackingId = res.complaint_id
-      setGeneratedTrackingId(newTrackingId)
-      setSubmitSuccess(true)
-
-      // Save to device localStorage
+      const session =
+        authMode === 'register'
+          ? await registerCitizenAccount({
+              full_name: authFullName.trim(),
+              email: authEmail.trim(),
+              password: authPassword,
+            })
+          : await loginCitizenAccount({
+              username: authEmail.trim(),
+              password: authPassword,
+            })
+      setCitizenSession(session)
       try {
-        const updated = [newTrackingId, ...recentTrackingIds.filter((id) => id !== newTrackingId)].slice(0, 10)
-        setRecentTrackingIds(updated)
-        localStorage.setItem('civiceye_citizen_tracking_ids', JSON.stringify(updated))
+        localStorage.setItem(CITIZEN_SESSION_KEY, JSON.stringify(session))
       } catch {
         // ignore
       }
-    } catch (err: unknown) {
-      const axiosErr = err as { response?: { data?: { message?: string } } }
-      setSubmitError(axiosErr?.response?.data?.message || 'Failed to submit complaint. Please try again.')
+      setShowAuthModal(false)
+      setAuthPassword('')
+    } catch (err: any) {
+      setAuthError(
+        err?.response?.data?.message || 'Citizen authentication failed. Please check your details.'
+      )
+    } finally {
+      setIsAuthSubmitting(false)
+    }
+  }
+
+  const handleCitizenLogout = () => {
+    setCitizenSession(null)
+    try {
+      localStorage.removeItem(CITIZEN_SESSION_KEY)
+    } catch {
+      // ignore
+    }
+  }
+
+  // PHASE 1 — #3 & #4: Browser Geolocation with permission handling, no fake coordinates, and street-level auto-zoom
+  const handleUseCurrentLocation = () => {
+    if (typeof window !== 'undefined' && !window.isSecureContext) {
+      setGpsNotice({
+        type: 'warning',
+        text: 'Browser geolocation requires a secure HTTPS or localhost connection. Please click the map, search an address, or enter coordinates manually below.',
+      })
+      return
+    }
+
+    if (!navigator.geolocation) {
+      setGpsNotice({
+        type: 'warning',
+        text: 'Geolocation API is not supported by your browser. Click anywhere on the map or search a landmark below.',
+      })
+      return
+    }
+
+    setIsLocatingGps(true)
+    setGpsNotice({
+      type: 'info',
+      text: 'Requesting your current GPS location…',
+    })
+
+    const onGpsSuccess = (pos: GeolocationPosition) => {
+      setIsLocatingGps(false)
+      const lat = Number(pos.coords.latitude.toFixed(6))
+      const lng = Number(pos.coords.longitude.toFixed(6))
+      const accuracyMeters = pos.coords.accuracy ? Math.round(pos.coords.accuracy) : null
+      setLatitude(lat)
+      setLongitude(lng)
+      setManualLatInput(lat.toFixed(5))
+      setManualLngInput(lng.toFixed(5))
+      setLocationSource('gps')
+      setFlyTarget({ lat, lng, zoom: STREET_LEVEL_ZOOM, seq: Date.now() })
+      setGpsNotice({
+        type: 'success',
+        text: `Current GPS location locked (${lat.toFixed(5)}, ${lng.toFixed(5)})${
+          accuracyMeters ? ` · ±${accuracyMeters}m accuracy` : ''
+        }. Map centered and zoomed to street level.`,
+      })
+    }
+
+    const onGpsError = (err: GeolocationPositionError) => {
+      setIsLocatingGps(false)
+      // Never substitute fake coordinates on error
+      let reason = 'Unable to retrieve your current GPS location.'
+      if (err.code === 1) {
+        const policyBlocked =
+          err.message &&
+          (err.message.toLowerCase().includes('permissions policy') ||
+            err.message.toLowerCase().includes('feature policy'))
+        reason = policyBlocked
+          ? `Geolocation is blocked by the browser frame policy (${err.message}). Please use manual location selection: click/drag the map pin, search a landmark, or type coordinates below.`
+          : `Location permission was denied (${err.message || 'user declined access'}). Please select the location manually by clicking the map, searching an address, or entering coordinates below.`
+      } else if (err.code === 2) {
+        reason = `Position unavailable: your device could not determine a GPS/network fix (${
+          err.message || 'signal unavailable'
+        }). Please click the map or search a landmark manually.`
+      } else if (err.code === 3) {
+        reason =
+          'Location request timed out while waiting for a GPS fix. Please try again or select the location on the map manually.'
+      } else if (err.message) {
+        reason = `Location error: ${err.message}. Please select the location on the map manually.`
+      }
+      setGpsNotice({
+        type: 'warning',
+        text: reason,
+      })
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      onGpsSuccess,
+      (err) => {
+        if (err.code === 2 || err.code === 3) {
+          navigator.geolocation.getCurrentPosition(onGpsSuccess, onGpsError, {
+            enableHighAccuracy: false,
+            timeout: 10000,
+            maximumAge: 60000,
+          })
+          return
+        }
+        onGpsError(err)
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    )
+  }
+
+  // Manual map click or pin drag updates coordinates & centers map cleanly
+  const handleMapPinSelect = (lat: number, lng: number) => {
+    setLatitude(lat)
+    setLongitude(lng)
+    setManualLatInput(lat.toFixed(5))
+    setManualLngInput(lng.toFixed(5))
+    setLocationSource('manual_pin')
+    setDuplicateWarnings([])
+    setGpsNotice({
+      type: 'info',
+      text: `Pin placed at ${lat.toFixed(5)}, ${lng.toFixed(5)}. Drag the pin or click the map to adjust.`,
+    })
+  }
+
+  // Address/landmark search centers and auto-zooms the map to street level
+  const handleSearchSelect = (result: GeocodeResult) => {
+    setLatitude(result.lat)
+    setLongitude(result.lng)
+    setManualLatInput(result.lat.toFixed(5))
+    setManualLngInput(result.lng.toFixed(5))
+    setAddress(result.name)
+    setLocationSource('search')
+    setDuplicateWarnings([])
+    setFlyTarget({ lat: result.lat, lng: result.lng, zoom: STREET_LEVEL_ZOOM, seq: Date.now() })
+    setGpsNotice({
+      type: 'success',
+      text: `Centered and zoomed to "${result.name}" (${result.lat.toFixed(5)}, ${result.lng.toFixed(5)}).`,
+    })
+  }
+
+  // Manual coordinate input handler (fallback when GPS permission is denied)
+  const handleApplyManualCoords = () => {
+    const parsedLat = Number(manualLatInput)
+    const parsedLng = Number(manualLngInput)
+    if (
+      Number.isNaN(parsedLat) ||
+      Number.isNaN(parsedLng) ||
+      parsedLat < -90 ||
+      parsedLat > 90 ||
+      parsedLng < -180 ||
+      parsedLng > 180
+    ) {
+      setGpsNotice({
+        type: 'warning',
+        text: 'Please enter valid latitude (-90 to 90) and longitude (-180 to 180) coordinates.',
+      })
+      return
+    }
+    const lat = Number(parsedLat.toFixed(6))
+    const lng = Number(parsedLng.toFixed(6))
+    setLatitude(lat)
+    setLongitude(lng)
+    setLocationSource('manual_coords')
+    setDuplicateWarnings([])
+    setFlyTarget({ lat, lng, zoom: STREET_LEVEL_ZOOM, seq: Date.now() })
+    setGpsNotice({
+      type: 'success',
+      text: `Centered and zoomed to manual coordinates (${lat.toFixed(5)}, ${lng.toFixed(5)}).`,
+    })
+  }
+
+  const applyAiClassification = (classification: AIClassificationResponse) => {
+    setAiResult(classification)
+    setAiError(null)
+    const isLowConf =
+      Boolean(classification.low_confidence) ||
+      (typeof classification.confidence === 'number' && classification.confidence < 0.65)
+
+    // Only auto-apply category if confidence is not low OR user hasn't manually overridden
+    if (classification.category && (!manualCategoryOverride || !isLowConf)) {
+      setCategory(classification.category)
+      setManualCategoryOverride(false)
+    }
+    if (classification.severity) {
+      setSeverity(classification.severity)
+    }
+    if (!description.trim() && classification.suggested_description) {
+      setDescription(classification.suggested_description)
+    }
+  }
+
+  // PHASE 1 — #1 & #2: Photo Preview validation + persistence + genuine AI classification
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setSubmitError(null)
+    setMediaError(null)
+    setAiError(null)
+
+    const lowerName = file.name.toLowerCase()
+    const dotIdx = lowerName.lastIndexOf('.')
+    const ext = dotIdx >= 0 ? lowerName.slice(dotIdx) : ''
+    const mime = (file.type || '').toLowerCase()
+
+    const isSupportedMime =
+      ALLOWED_IMAGE_MIME_TYPES.has(mime) || ALLOWED_VIDEO_MIME_TYPES.has(mime)
+    const isSupportedExt = ALLOWED_FILE_EXTENSIONS.has(ext)
+
+    if (!isSupportedMime && !isSupportedExt) {
+      setMediaError(
+        `Unsupported file type "${file.name}". Please select a valid image (JPG, PNG, WEBP, GIF) or video (MP4, WEBM).`
+      )
+      e.target.value = ''
+      return
+    }
+
+    if (file.size === 0) {
+      setMediaError(`The selected file "${file.name}" is empty (0 bytes). Please choose a valid photo.`)
+      e.target.value = ''
+      return
+    }
+
+    if (file.size > MAX_MEDIA_SIZE_BYTES) {
+      setMediaError(
+        `File "${file.name}" (${formatFileSize(file.size)}) exceeds the maximum 20 MB limit. Please choose a smaller photo.`
+      )
+      e.target.value = ''
+      return
+    }
+
+    revokeCurrentObjectUrl()
+    setMediaFile(file)
+    setUploadedMediaUrl(null)
+
+    // 1. Immediate object URL preview
+    const objectUrl = URL.createObjectURL(file)
+    objectUrlRef.current = objectUrl
+    setMediaPreview(objectUrl)
+
+    // 2. Data URL via FileReader for resilient preview & persistence
+    let localDataUrl: string | null = null
+    if (!mime.startsWith('video/') && ext !== '.mp4' && ext !== '.webm' && ext !== '.mov') {
+      try {
+        localDataUrl = await readFileAsDataUrl(file)
+        setMediaDataUrl(localDataUrl)
+      } catch {
+        setMediaDataUrl(null)
+      }
+    } else {
+      setMediaDataUrl(null)
+    }
+
+    // 3. Upload original file to server
+    setIsUploading(true)
+    let serverMediaUrl = ''
+    let serverMediaType: 'image' | 'video' = mime.startsWith('video/') ? 'video' : 'image'
+    try {
+      const uploaded = await uploadCitizenMedia(file)
+      serverMediaUrl = uploaded.url
+      serverMediaType = uploaded.media_type
+      setUploadedMediaUrl(uploaded.url)
+    } catch (uploadErr: any) {
+      const msg = uploadErr?.response?.data?.message
+      if (msg) {
+        setMediaError(msg)
+      }
+    } finally {
+      setIsUploading(false)
+    }
+
+    // 4. Classify with real Gemini AI model
+    setIsAnalyzing(true)
+    try {
+      const classification = await classifyCitizenReport({
+        text: description,
+        media_name: file.name,
+        media_type: serverMediaType,
+        media_url: serverMediaUrl,
+        image_base64: localDataUrl || undefined,
+      })
+      applyAiClassification(classification)
+    } catch (aiErr: any) {
+      setAiError(
+        aiErr?.response?.data?.message ||
+          'AI classification service is currently unavailable. Please verify or select the issue category manually.'
+      )
+    } finally {
+      setIsAnalyzing(false)
+    }
+  }
+
+  const handleRunAiOnDescription = async () => {
+    if (!description.trim() && !uploadedMediaUrl && !mediaDataUrl) {
+      setAiError('Please enter a description or upload a photo first to run AI classification.')
+      return
+    }
+    setIsAnalyzing(true)
+    setAiError(null)
+    setSubmitError(null)
+    try {
+      const classification = await classifyCitizenReport({
+        text: description,
+        media_name: mediaFile?.name || '',
+        media_type: mediaFile?.type.startsWith('video/') ? 'video' : 'image',
+        media_url: uploadedMediaUrl || '',
+        image_base64: mediaDataUrl || undefined,
+      })
+      applyAiClassification(classification)
+    } catch (err: any) {
+      setAiError(
+        err?.response?.data?.message ||
+          'AI classification service is currently unavailable. Please select the issue category manually.'
+      )
+    } finally {
+      setIsAnalyzing(false)
+    }
+  }
+
+  const handleClearMedia = () => {
+    revokeCurrentObjectUrl()
+    setMediaFile(null)
+    setMediaPreview(null)
+    setMediaDataUrl(null)
+    setUploadedMediaUrl(null)
+    setMediaError(null)
+    if (fileInputRef.current) fileInputRef.current.value = ''
+  }
+
+  // Finalize creating a separate complaint record
+  const executeCreateSeparateComplaint = async () => {
+    setIsSubmitting(true)
+    setSubmitError(null)
+    try {
+      let finalMediaUrl = uploadedMediaUrl
+      if (mediaFile && !finalMediaUrl) {
+        try {
+          const uploaded = await uploadCitizenMedia(mediaFile)
+          finalMediaUrl = uploaded.url
+          setUploadedMediaUrl(uploaded.url)
+        } catch {
+          // Will fall back to image_base64 in createPublicComplaint payload
+        }
+      }
+
+      const created = await createPublicComplaint({
+        category,
+        description: description.trim(),
+        severity,
+        latitude,
+        longitude,
+        address:
+          address.trim() ||
+          `Pune (${latitude.toFixed(4)}°N, ${longitude.toFixed(4)}°E)`,
+        media_url: finalMediaUrl,
+        media_type: mediaFile?.type.startsWith('video/') ? 'video' : mediaFile ? 'image' : null,
+        image_base64: !finalMediaUrl && mediaDataUrl ? mediaDataUrl : undefined,
+        is_anonymous: !citizenSession,
+        contact_name: citizenSession?.user.full_name || undefined,
+        honeypot,
+        force_new: true,
+      })
+      setDuplicateWarnings([])
+      setSubmittedComplaint(created)
+      setTrackCode(created.complaint_id)
+      recordSavedComplaintId(created.complaint_id)
+      refreshCitizenHistory()
+    } catch (err: any) {
+      setSubmitError(
+        err?.response?.data?.message || 'Failed to submit complaint. Please try again.'
+      )
     } finally {
       setIsSubmitting(false)
     }
   }
 
-  // Tracking Lookup
-  const handleTrackLookup = async (idToLookUp?: string) => {
-    const target = (idToLookUp || trackSearchId).trim()
-    if (!target) return
+  // PHASE 2 — FEATURE A: Check for duplicate complaints before submitting
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setSubmitError(null)
 
-    setIsTrackingLoading(true)
-    setTrackError('')
-    setTrackedComplaint(null)
+    if (!description.trim()) {
+      setSubmitError('Please enter a brief description of the issue.')
+      return
+    }
 
+    // Step 1: Check for potential unresolved duplicates (proximity + category + description similarity)
+    setIsCheckingDuplicates(true)
     try {
-      const data = await trackComplaintPublic(target)
-      setTrackedComplaint(data)
-    } catch (err: unknown) {
-      const axiosErr = err as { response?: { data?: { message?: string } } }
-      setTrackError(
-        axiosErr?.response?.data?.message ||
-          `No record found for tracking ID "${target}". Please verify the ID format (e.g. CE-202609-0001).`
+      const dupCheck = await checkCitizenDuplicates({
+        category,
+        description: description.trim(),
+        latitude,
+        longitude,
+      })
+      if (dupCheck.has_duplicates && dupCheck.duplicates.length > 0) {
+        setDuplicateWarnings(dupCheck.duplicates)
+        setIsCheckingDuplicates(false)
+        return
+      }
+    } catch {
+      // If duplicate check fails, proceed gracefully to submission
+    } finally {
+      setIsCheckingDuplicates(false)
+    }
+
+    // Step 2: No duplicates found — submit separate report immediately
+    await executeCreateSeparateComplaint()
+  }
+
+  // Citizen confirms a duplicate warning is the same issue
+  const handleConfirmSameIssue = async (dup: PotentialDuplicateWarningItem) => {
+    setIsConfirmingDuplicateId(dup.complaint_id)
+    setSubmitError(null)
+    try {
+      const confirmed = await confirmCitizenDuplicate(dup.complaint_id, {
+        notes: description.trim(),
+        media_url: uploadedMediaUrl || null,
+      })
+      setDuplicateWarnings([])
+      setSubmittedComplaint(confirmed)
+      setTrackCode(confirmed.complaint_id)
+      recordSavedComplaintId(confirmed.complaint_id)
+      refreshCitizenHistory()
+    } catch (err: any) {
+      setSubmitError(
+        err?.response?.data?.message || 'Could not confirm duplicate complaint. Please try again.'
       )
     } finally {
-      setIsTrackingLoading(false)
+      setIsConfirmingDuplicateId(null)
     }
   }
 
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text)
-    setCopiedId(true)
-    setTimeout(() => setCopiedId(false), 2000)
-  }
-
-  const resetForm = () => {
-    setSubmitSuccess(false)
-    setGeneratedTrackingId(null)
-    setMediaFile(null)
-    setMediaPreview(null)
+  const handleResetForm = () => {
+    setSubmittedComplaint(null)
     setDescription('')
+    setAddress('')
     setAiResult(null)
-    setSubmitError('')
+    setAiError(null)
+    setDuplicateWarnings([])
+    setManualCategoryOverride(false)
+    handleClearMedia()
+    setSubmitError(null)
   }
 
-  const filteredFeed =
-    feedCategoryFilter === 'all'
-      ? feedComplaints
-      : feedComplaints.filter((c) => c.category.toLowerCase() === feedCategoryFilter.toLowerCase())
+  const handleCopyTrackingId = (id: string) => {
+    navigator.clipboard.writeText(id)
+    setCopiedId(true)
+    setTimeout(() => setCopiedId(false), 2500)
+  }
+
+  const handleTrackLookup = async (e?: React.FormEvent, overrideCode?: string) => {
+    if (e) e.preventDefault()
+    const codeToSearch = (overrideCode ?? trackCode).trim()
+    if (!codeToSearch) {
+      setTrackError('Enter your complaint reference number (e.g., CE-202609-0001).')
+      return
+    }
+    setIsTracking(true)
+    setTrackError(null)
+    setTrackedComplaint(null)
+    try {
+      const found = await trackPublicComplaint(codeToSearch)
+      setTrackedComplaint(found)
+      recordSavedComplaintId(found.complaint_id)
+    } catch (err: any) {
+      setTrackError(
+        err?.response?.data?.message ||
+          `No complaint found for "${codeToSearch}".`
+      )
+    } finally {
+      setIsTracking(false)
+    }
+  }
+
+  const selectedDept =
+    ISSUE_CATEGORIES.find((c) => c.id === category)?.dept ||
+    (aiResult?.category === category ? aiResult.department_name : null) ||
+    'Roads & Infrastructure'
+
+  const isLowConfidenceAi =
+    Boolean(aiResult?.low_confidence) ||
+    (typeof aiResult?.confidence === 'number' && aiResult.confidence < 0.65)
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-teal-500/30 selection:text-teal-200">
-      {/* ── Public Citizen Header ── */}
-      <header className="border-b border-slate-800/80 bg-slate-900/90 backdrop-blur-md sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-teal-600 to-emerald-500 flex items-center justify-center shadow-lg shadow-teal-900/40">
-              <Eye className="w-5 h-5 text-white" />
+    <div className="min-h-screen bg-[#101C23] text-[#F4F7F7] flex flex-col">
+      {/* Header */}
+      <header className="border-b border-[#2A444E] bg-[#1C3038] sticky top-0 z-40">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 h-15 py-3 flex items-center justify-between gap-3">
+          <Link
+            to="/"
+            className="flex items-center gap-2 text-base sm:text-lg font-bold tracking-tight text-[#F4F7F7] whitespace-nowrap"
+          >
+            <div className="w-8 h-8 rounded-lg bg-[#367F77] flex items-center justify-center text-[#F4F7F7]">
+              <Eye size={17} />
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="font-bold text-white text-base tracking-tight">CivicEye AI</span>
-                <span className="text-[10px] uppercase font-semibold tracking-wider text-teal-400 bg-teal-950/80 border border-teal-800/60 px-2 py-0.5 rounded">
-                  Citizen Portal
-                </span>
-              </div>
-              <p className="text-xs text-slate-400 hidden sm:block">Pune Municipal Corporation · Public Redressal</p>
-            </div>
+            <span>CivicEye AI</span>
+          </Link>
+
+          <div className="flex items-center gap-1 p-1 bg-[#101C23] border border-[#2A444E] rounded-lg">
+            <button
+              type="button"
+              onClick={() => setActiveTab('submit')}
+              className={`px-3.5 py-1.5 rounded-md text-xs sm:text-sm font-semibold transition-colors whitespace-nowrap ${
+                activeTab === 'submit'
+                  ? 'bg-[#367F77] text-[#F4F7F7]'
+                  : 'text-[#AABDC2] hover:text-[#F4F7F7]'
+              }`}
+            >
+              Report an Issue
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('track')}
+              className={`px-3.5 py-1.5 rounded-md text-xs sm:text-sm font-semibold transition-colors whitespace-nowrap ${
+                activeTab === 'track'
+                  ? 'bg-[#367F77] text-[#F4F7F7]'
+                  : 'text-[#AABDC2] hover:text-[#F4F7F7]'
+              }`}
+            >
+              Track My Complaint
+            </button>
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-4">
-            {/* Quick Segmented Nav */}
-            <div className="flex items-center bg-slate-800/80 p-1 rounded-lg border border-slate-700/60 text-xs">
+          <div className="flex items-center gap-2">
+            {citizenSession ? (
+              <div className="flex items-center gap-2 text-xs bg-[#101C23] border border-[#2A444E] rounded-lg px-2.5 py-1.5">
+                <UserCheck size={13} className="text-[#91C8BD]" />
+                <span className="font-semibold text-[#F4F7F7] hidden sm:inline">
+                  {citizenSession.user.full_name}
+                </span>
+                <button
+                  type="button"
+                  onClick={handleCitizenLogout}
+                  title="Sign Out"
+                  className="text-[#AABDC2] hover:text-red-300 ml-1"
+                >
+                  <LogOut size={13} />
+                </button>
+              </div>
+            ) : (
               <button
-                onClick={() => switchTab('report')}
-                className={`px-3 py-1.5 rounded-md font-medium transition-all ${
-                  activeTab === 'report' ? 'bg-teal-500 text-white shadow-sm' : 'text-slate-400 hover:text-white'
-                }`}
+                type="button"
+                onClick={() => {
+                  setShowAuthModal((v) => !v)
+                  setAuthError(null)
+                }}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#101C23] hover:bg-[#233B44] border border-[#2A444E] text-xs font-semibold text-[#91C8BD] transition-colors whitespace-nowrap"
               >
-                Report Issue
+                <UserPlus size={13} />
+                <span className="hidden sm:inline">Citizen Login / Register</span>
               </button>
-              <button
-                onClick={() => switchTab('track')}
-                className={`px-3 py-1.5 rounded-md font-medium transition-all ${
-                  activeTab === 'track' ? 'bg-teal-500 text-white shadow-sm' : 'text-slate-400 hover:text-white'
-                }`}
-              >
-                Track Status
-              </button>
-              <button
-                onClick={() => switchTab('feed')}
-                className={`px-3 py-1.5 rounded-md font-medium transition-all hidden md:block ${
-                  activeTab === 'feed' ? 'bg-teal-500 text-white shadow-sm' : 'text-slate-400 hover:text-white'
-                }`}
-              >
-                City Feed
-              </button>
-            </div>
+            )}
 
-            {/* Clear, distinct link to Government Login */}
             <Link
-              to="/admin/login"
-              className="text-xs text-slate-400 hover:text-teal-300 flex items-center gap-1.5 py-1.5 px-2.5 rounded-lg border border-slate-800 hover:border-slate-700 hover:bg-slate-800/60 transition-colors"
-              title="Restricted login for municipal staff"
+              to="/"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#AABDC2] hover:text-[#F4F7F7] whitespace-nowrap"
             >
-              <Shield size={13} className="text-teal-400" />
-              <span className="hidden sm:inline">Municipal Admin</span>
-              <ChevronRight size={12} className="text-slate-500" />
+              <ArrowLeft size={14} />
+              <span className="hidden sm:inline">Home</span>
             </Link>
           </div>
         </div>
       </header>
 
-      {/* ── Main Citizen Container ── */}
-      <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-6 md:py-8 space-y-8">
-        {/* Hero Section */}
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-b from-slate-900 via-slate-900/80 to-slate-950 border border-slate-800 p-6 md:p-10 shadow-2xl">
-          <div className="absolute top-0 right-0 -mr-20 -mt-20 w-80 h-80 rounded-full bg-teal-500/10 blur-3xl pointer-events-none" />
-          <div className="max-w-2xl relative z-10 space-y-4">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-500/10 border border-teal-500/20 text-teal-300 text-xs font-medium">
-              <Sparkles size={13} className="text-teal-400" />
-              Automated AI Routing to Pune Municipal Departments
-            </div>
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white tracking-tight leading-tight">
-              Report Civic Issues.{' '}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-emerald-400">
-                Fix Your City.
-              </span>
-            </h1>
-            <p className="text-slate-400 text-sm sm:text-base leading-relaxed">
-              No account or login needed. Upload a photo or video of a pothole, open garbage, broken streetlight, or drainage failure. Our AI auto-assigns the relevant municipal ward & department with real-time tracking.
-            </p>
-            <div className="flex flex-wrap items-center gap-3 pt-2">
+      {/* Main Content */}
+      <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8">
+        {/* Optional Citizen Registration / Login Panel */}
+        {showAuthModal && !citizenSession && (
+          <div className="mb-6 bg-[#1C3038] border border-[#367F77] rounded-2xl p-5 space-y-4">
+            <div className="flex items-center justify-between gap-2">
+              <div>
+                <h2 className="text-sm sm:text-base font-bold text-[#F4F7F7]">
+                  {authMode === 'login' ? 'Citizen Account Sign In' : 'Create Citizen Account'}
+                </h2>
+                <p className="text-xs text-[#AABDC2]">
+                  Optional — Sign in to link submitted reports to your citizen profile, or continue reporting anonymously below.
+                </p>
+              </div>
               <button
-                onClick={() => switchTab('report')}
-                className="px-5 py-2.5 bg-teal-500 hover:bg-teal-400 text-slate-950 font-semibold rounded-xl text-sm transition-all shadow-lg shadow-teal-500/20 flex items-center gap-2"
+                type="button"
+                onClick={() => setShowAuthModal(false)}
+                className="text-[#AABDC2] hover:text-[#F4F7F7]"
               >
-                <Camera size={16} />
-                Report Civic Problem
-              </button>
-              <button
-                onClick={() => switchTab('track')}
-                className="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium rounded-xl text-sm transition-all border border-slate-700 flex items-center gap-2"
-              >
-                <Search size={15} />
-                Track by ID
+                <X size={16} />
               </button>
             </div>
+
+            <div className="flex items-center gap-2 text-xs">
+              <button
+                type="button"
+                onClick={() => {
+                  setAuthMode('login')
+                  setAuthError(null)
+                }}
+                className={`px-3 py-1.5 rounded-lg font-semibold ${
+                  authMode === 'login'
+                    ? 'bg-[#367F77] text-[#F4F7F7]'
+                    : 'bg-[#101C23] text-[#AABDC2]'
+                }`}
+              >
+                Sign In
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setAuthMode('register')
+                  setAuthError(null)
+                }}
+                className={`px-3 py-1.5 rounded-lg font-semibold ${
+                  authMode === 'register'
+                    ? 'bg-[#367F77] text-[#F4F7F7]'
+                    : 'bg-[#101C23] text-[#AABDC2]'
+                }`}
+              >
+                Register New Citizen
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setAuthMode('login')
+                  setAuthEmail('citizen1')
+                  setAuthPassword('pass123')
+                }}
+                className="ml-auto text-[#91C8BD] hover:underline font-mono text-[11px]"
+              >
+                Fill Demo Citizen (citizen1)
+              </button>
+            </div>
+
+            {authError && (
+              <div className="p-2.5 rounded-lg bg-red-950/60 border border-red-700/60 text-red-200 text-xs">
+                {authError}
+              </div>
+            )}
+
+            <form onSubmit={handleCitizenAuthSubmit} className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {authMode === 'register' && (
+                <input
+                  type="text"
+                  value={authFullName}
+                  onChange={(e) => setAuthFullName(e.target.value)}
+                  placeholder="Full Name (e.g. Rahul Deshmukh)"
+                  required
+                  className="bg-[#101C23] border border-[#2A444E] rounded-lg px-3 py-2 text-xs text-[#F4F7F7] outline-none focus:border-[#91C8BD]"
+                />
+              )}
+              <input
+                type="text"
+                value={authEmail}
+                onChange={(e) => setAuthEmail(e.target.value)}
+                placeholder={authMode === 'register' ? 'Email or Username' : 'Username or Email (e.g. citizen1)'}
+                required
+                className="bg-[#101C23] border border-[#2A444E] rounded-lg px-3 py-2 text-xs text-[#F4F7F7] outline-none focus:border-[#91C8BD]"
+              />
+              <input
+                type="password"
+                value={authPassword}
+                onChange={(e) => setAuthPassword(e.target.value)}
+                placeholder="Password (min 4 chars)"
+                required
+                className="bg-[#101C23] border border-[#2A444E] rounded-lg px-3 py-2 text-xs text-[#F4F7F7] outline-none focus:border-[#91C8BD]"
+              />
+              <button
+                type="submit"
+                disabled={isAuthSubmitting}
+                className="px-4 py-2 rounded-lg bg-[#367F77] hover:bg-[#2d6b64] text-[#F4F7F7] text-xs font-semibold transition-colors disabled:opacity-50"
+              >
+                {isAuthSubmitting
+                  ? 'Please wait…'
+                  : authMode === 'register'
+                  ? 'Register & Sign In'
+                  : 'Sign In'}
+              </button>
+            </form>
           </div>
+        )}
+
+        {/* Compact Page Header */}
+        <div className="mb-5">
+          <h1 className="text-xl sm:text-2xl font-bold text-[#F4F7F7]">
+            {activeTab === 'submit' ? 'Report an Issue' : 'Track My Complaint'}
+          </h1>
+          <p className="text-xs sm:text-sm text-[#AABDC2] mt-0.5">
+            Report a civic issue or track your complaint status and before/after repair proof.
+          </p>
         </div>
 
-        {/* ── TAB 1: REPORT CIVIC ISSUE ── */}
-        {activeTab === 'report' && (
-          <div className="space-y-6">
-            {submitSuccess && generatedTrackingId ? (
-              /* Success Confirmation Banner */
-              <div className="bg-slate-900 border border-emerald-500/40 rounded-2xl p-6 sm:p-8 text-center space-y-5 animate-in fade-in zoom-in-95 duration-300">
-                <div className="w-16 h-16 bg-emerald-500/20 border border-emerald-500/30 rounded-2xl flex items-center justify-center mx-auto text-emerald-400">
-                  <CheckCircle2 size={36} />
-                </div>
-                <div>
-                  <span className="text-xs uppercase font-bold tracking-widest text-emerald-400">
-                    Report Successfully Filed
-                  </span>
-                  <h2 className="text-2xl font-bold text-white mt-1">Your Complaint Has Been Dispatched</h2>
-                  <p className="text-slate-400 text-sm max-w-md mx-auto mt-2">
-                    Assigned to{' '}
-                    <span className="text-teal-300 font-medium">{selectedDeptName}</span>. Save your unique tracking ID to monitor municipal crew progress.
-                  </p>
+        {/* TAB 1: REPORT AN ISSUE */}
+        {activeTab === 'submit' && (
+          <div>
+            {submittedComplaint ? (
+              <div className="bg-[#1C3038] border border-[#2A444E] rounded-2xl p-6 space-y-5">
+                <div className="flex items-start gap-3">
+                  <CheckCircle2 className="w-6 h-6 text-[#91C8BD] flex-shrink-0 mt-0.5" />
+                  <div>
+                    <h2 className="text-lg font-bold text-[#F4F7F7]">
+                      {submittedComplaint.deduplicated
+                        ? 'Confirmed & Linked to Existing Report'
+                        : 'Complaint Submitted'}
+                    </h2>
+                    <p className="text-xs sm:text-sm text-[#AABDC2] mt-0.5">
+                      {submittedComplaint.deduplicated
+                        ? `Your report corroborated existing ${submittedComplaint.category} complaint ${submittedComplaint.complaint_id}. Total sightings: ${submittedComplaint.observation_count}.`
+                        : 'Your report has been logged with a unique tracking ID and routed to the responsible department.'}
+                    </p>
+                  </div>
                 </div>
 
-                {/* Tracking ID Box */}
-                <div className="max-w-md mx-auto bg-slate-950 border border-slate-700 rounded-xl p-4 flex items-center justify-between">
-                  <div className="text-left">
-                    <span className="text-xs text-slate-500 block uppercase font-mono">Unique Tracking ID</span>
-                    <span className="text-xl sm:text-2xl font-mono font-bold text-teal-400">
-                      {generatedTrackingId}
-                    </span>
+                {/* Reference Number Box */}
+                <div className="bg-[#101C23] border border-[#367F77] rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div>
+                    <div className="text-xs text-[#AABDC2]">
+                      Tracking Reference Number
+                    </div>
+                    <div className="text-xl sm:text-2xl font-bold font-mono text-[#91C8BD] mt-0.5">
+                      {submittedComplaint.complaint_id}
+                    </div>
                   </div>
                   <button
-                    onClick={() => copyToClipboard(generatedTrackingId)}
-                    className="p-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors border border-slate-700 flex items-center gap-1.5 text-xs"
+                    type="button"
+                    onClick={() => handleCopyTrackingId(submittedComplaint.complaint_id)}
+                    className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-[#367F77] hover:bg-[#2d6b64] text-[#F4F7F7] text-xs font-semibold transition-colors whitespace-nowrap"
                   >
-                    <Copy size={14} />
-                    {copiedId ? 'Copied!' : 'Copy'}
+                    {copiedId ? <Check size={14} /> : <Copy size={14} />}
+                    <span>{copiedId ? 'Copied' : 'Copy ID'}</span>
                   </button>
                 </div>
 
-                <div className="flex flex-wrap justify-center gap-3 pt-2">
+                {/* Summary Details */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs border-t border-b border-[#2A444E] py-3.5">
+                  <div>
+                    <span className="text-[#AABDC2] block">Category</span>
+                    <span className="font-semibold text-[#F4F7F7]">
+                      {submittedComplaint.category} ({submittedComplaint.severity.toUpperCase()})
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-[#AABDC2] block">Routed Department</span>
+                    <span className="font-semibold text-[#F4F7F7]">
+                      {submittedComplaint.department_name ||
+                        submittedComplaint.department ||
+                        selectedDept}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-[#AABDC2] block">Status</span>
+                    <span className="font-semibold text-[#91C8BD]">
+                      {STATUS_LABELS[submittedComplaint.status]?.label || 'Submitted'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Retained Photo Evidence Confirmation */}
+                {(submittedComplaint.media_url ||
+                  submittedComplaint.evidence_image_path ||
+                  mediaPreview) && (
+                  <div className="bg-[#101C23] border border-[#2A444E] rounded-xl p-3 space-y-2">
+                    <div className="text-xs font-semibold text-[#91C8BD] flex items-center gap-1.5">
+                      <Camera size={14} />
+                      <span>Attached Photo Evidence Retained</span>
+                    </div>
+                    <img
+                      src={
+                        submittedComplaint.media_url ||
+                        submittedComplaint.evidence_image_path ||
+                        mediaPreview ||
+                        ''
+                      }
+                      alt="Submitted complaint evidence"
+                      className="w-full max-h-48 object-contain rounded-lg border border-[#2A444E] bg-[#0B1419]"
+                    />
+                  </div>
+                )}
+
+                <div className="flex flex-wrap items-center gap-3">
                   <button
+                    type="button"
                     onClick={() => {
-                      setTrackSearchId(generatedTrackingId)
-                      switchTab('track')
-                      handleTrackLookup(generatedTrackingId)
+                      setActiveTab('track')
+                      handleTrackLookup(undefined, submittedComplaint.complaint_id)
                     }}
-                    className="px-6 py-2.5 bg-teal-500 hover:bg-teal-400 text-slate-950 font-semibold rounded-xl text-sm transition-all flex items-center gap-2"
+                    className="px-4 py-2 rounded-lg bg-[#367F77] hover:bg-[#2d6b64] text-[#F4F7F7] text-xs sm:text-sm font-semibold transition-colors"
                   >
-                    Track Progress Now <ArrowRight size={15} />
+                    Track Status
                   </button>
                   <button
-                    onClick={resetForm}
-                    className="px-6 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-sm transition-all border border-slate-700"
+                    type="button"
+                    onClick={handleResetForm}
+                    className="px-4 py-2 rounded-lg bg-[#233B44] hover:bg-[#2A444E] text-[#F4F7F7] text-xs sm:text-sm font-semibold transition-colors"
                   >
-                    Submit Another Issue
+                    Report Another Issue
                   </button>
                 </div>
               </div>
             ) : (
-              /* Complaint Submission Form */
-              <form onSubmit={handleSubmitReport} className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                {/* Left Column: Media & AI Analysis (7 cols) */}
-                <div className="lg:col-span-7 space-y-6">
-                  {/* Upload Box */}
-                  <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 sm:p-6 space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="font-bold text-white text-base flex items-center gap-2">
-                          <Camera className="w-5 h-5 text-teal-400" />
-                          1. Upload Photo or Video Evidence
-                        </h3>
-                        <p className="text-xs text-slate-400 mt-0.5">
-                          Clear visual evidence helps AI pinpoint the problem and department instantly.
-                        </p>
-                      </div>
-                      <span className="text-[11px] text-teal-400/80 bg-teal-950/60 border border-teal-800/40 px-2 py-0.5 rounded">
-                        Photo or Video
-                      </span>
-                    </div>
+              <form
+                onSubmit={handleSubmit}
+                className="bg-[#1C3038] border border-[#2A444E] rounded-2xl p-5 sm:p-6 space-y-5"
+              >
+                {/* Honeypot */}
+                <input
+                  type="text"
+                  value={honeypot}
+                  onChange={(e) => setHoneypot(e.target.value)}
+                  className="hidden"
+                  tabIndex={-1}
+                  autoComplete="off"
+                />
 
-                    {/* Media Dropzone or Preview */}
-                    {mediaPreview ? (
-                      <div className="relative rounded-xl overflow-hidden border border-slate-700 bg-slate-950 group">
-                        {mediaType === 'video' ? (
-                          <video
-                            src={mediaPreview}
-                            controls
-                            className="w-full h-64 sm:h-72 object-cover"
-                          />
-                        ) : (
-                          <img
-                            src={mediaPreview}
-                            alt="Civic Issue Evidence"
-                            className="w-full h-64 sm:h-72 object-cover"
-                          />
-                        )}
+                {submitError && (
+                  <div className="p-3 rounded-lg bg-red-950/60 border border-red-700/60 text-red-200 text-xs flex items-center gap-2">
+                    <AlertTriangle size={15} className="text-red-400 flex-shrink-0" />
+                    <span>{submitError}</span>
+                  </div>
+                )}
+
+                {/* 1. Category */}
+                <div>
+                  <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+                    <label className="block text-xs sm:text-sm font-semibold text-[#F4F7F7]">
+                      Issue Category <span className="text-red-400">*</span>
+                    </label>
+                    <span className="text-[11px] text-[#AABDC2]">
+                      Select manually or use AI Suggest / Photo Upload
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {ISSUE_CATEGORIES.map((cat) => {
+                      const selected = category === cat.id
+                      const isAiSuggested = aiResult?.category === cat.id
+                      return (
                         <button
+                          key={cat.id}
                           type="button"
                           onClick={() => {
-                            setMediaFile(null)
-                            setMediaPreview(null)
-                            setAiResult(null)
+                            setCategory(cat.id)
+                            setDuplicateWarnings([])
+                            if (aiResult && aiResult.category !== cat.id) {
+                              setManualCategoryOverride(true)
+                            } else {
+                              setManualCategoryOverride(false)
+                            }
                           }}
-                          className="absolute top-3 right-3 bg-slate-900/80 hover:bg-red-950/80 text-white hover:text-red-300 text-xs px-3 py-1.5 rounded-lg backdrop-blur-md border border-slate-700 transition-colors"
+                          className={`p-2.5 rounded-lg border text-left transition-colors relative ${
+                            selected
+                              ? 'bg-[#367F77] text-[#F4F7F7] border-[#91C8BD]'
+                              : 'bg-[#101C23] text-[#F4F7F7] border-[#2A444E] hover:bg-[#233B44]'
+                          }`}
                         >
-                          Change Media
+                          <div className="flex items-center justify-between gap-1">
+                            <span className="text-xs font-semibold">{cat.label}</span>
+                            {isAiSuggested && (
+                              <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#101C23]/80 text-[#91C8BD] font-semibold">
+                                AI
+                              </span>
+                            )}
+                          </div>
+                          <div
+                            className={`text-[10px] mt-0.5 truncate ${
+                              selected ? 'text-[#F4F7F7]/90' : 'text-[#AABDC2]'
+                            }`}
+                          >
+                            {cat.dept}
+                          </div>
                         </button>
-                      </div>
-                    ) : (
-                      <div className="border-2 border-dashed border-slate-700 hover:border-teal-500/60 rounded-xl p-6 sm:p-8 text-center transition-all bg-slate-950/40">
-                        <div className="flex justify-center gap-3 mb-3">
-                          <div className="w-12 h-12 rounded-xl bg-slate-800 flex items-center justify-center text-teal-400">
-                            <Upload size={22} />
-                          </div>
-                          <div className="w-12 h-12 rounded-xl bg-slate-800 flex items-center justify-center text-emerald-400">
-                            <Video size={22} />
-                          </div>
-                        </div>
-                        <p className="text-white font-medium text-sm">
-                          Drag and drop or select evidence file
-                        </p>
-                        <p className="text-slate-500 text-xs mt-1">
-                          Supports JPG, PNG, WEBP, MP4, MOV up to 50MB
-                        </p>
-                        <div className="flex flex-wrap justify-center gap-3 mt-4">
-                          <button
-                            type="button"
-                            onClick={() => fileInputRef.current?.click()}
-                            className="px-4 py-2 bg-teal-500/10 hover:bg-teal-500/20 text-teal-300 border border-teal-500/30 rounded-lg text-xs font-semibold flex items-center gap-2 transition-colors"
-                          >
-                            <Camera size={14} /> Take / Select Photo
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => videoInputRef.current?.click()}
-                            className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-lg text-xs font-semibold flex items-center gap-2 transition-colors"
-                          >
-                            <Video size={14} /> Upload Video
-                          </button>
-                        </div>
-                      </div>
-                    )}
+                      )
+                    })}
+                  </div>
+                </div>
 
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/*"
-                      capture="environment"
-                      className="hidden"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0]
-                        if (file) handleFileSelected(file, 'image')
-                      }}
-                    />
-                    <input
-                      ref={videoInputRef}
-                      type="file"
-                      accept="video/*"
-                      className="hidden"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0]
-                        if (file) handleFileSelected(file, 'video')
-                      }}
-                    />
-
-                    {/* Quick Demo Pre-fills for Testing */}
-                    <div className="pt-2 border-t border-slate-800/80">
-                      <span className="text-[11px] text-slate-500 uppercase tracking-wider font-semibold block mb-2">
-                        Or select a sample Pune issue for quick testing:
-                      </span>
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                        {SAMPLE_ISSUES.map((sample) => (
-                          <button
-                            key={sample.title}
-                            type="button"
-                            onClick={() => handleSelectSample(sample)}
-                            className="text-left p-2 rounded-lg bg-slate-950 border border-slate-800 hover:border-teal-500/40 text-xs transition-all group"
-                          >
-                            <span className="text-teal-400 font-semibold block group-hover:text-teal-300 truncate">
-                              {sample.category}
-                            </span>
-                            <span className="text-slate-500 text-[10px] truncate block">
-                              {sample.address.split(',')[0]}
-                            </span>
-                          </button>
-                        ))}
-                      </div>
+                {/* 2. Description & Priority */}
+                <div className="space-y-3">
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="text-xs sm:text-sm font-semibold text-[#F4F7F7]">
+                        Description <span className="text-red-400">*</span>
+                      </label>
+                      <button
+                        type="button"
+                        onClick={handleRunAiOnDescription}
+                        disabled={isAnalyzing || (!description.trim() && !mediaPreview)}
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#101C23] border border-[#367F77] text-xs font-semibold text-[#91C8BD] hover:bg-[#367F77] hover:text-[#F4F7F7] transition-colors disabled:opacity-40"
+                      >
+                        {isAnalyzing ? (
+                          <Loader2 size={12} className="animate-spin" />
+                        ) : (
+                          <Sparkles size={12} />
+                        )}
+                        <span>{isAnalyzing ? 'Analyzing with AI…' : 'AI Suggest Category'}</span>
+                      </button>
                     </div>
+                    <textarea
+                      rows={3}
+                      value={description}
+                      onChange={(e) => {
+                        setDescription(e.target.value)
+                        if (duplicateWarnings.length > 0) setDuplicateWarnings([])
+                      }}
+                      placeholder="Describe the issue and nearby landmark (e.g. Deep pothole in the middle of FC Road damaging two-wheelers)…"
+                      className="w-full bg-[#101C23] border border-[#2A444E] focus:border-[#91C8BD] rounded-lg p-3 text-sm text-[#F4F7F7] placeholder-[#AABDC2]/60 outline-none"
+                      required
+                    />
                   </div>
 
-                  {/* AI Auto-Identification Card */}
-                  <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 sm:p-6 space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="p-1.5 rounded-lg bg-teal-500/10 text-teal-400 border border-teal-500/20">
-                          <Sparkles size={16} />
-                        </div>
-                        <div>
-                          <h3 className="font-bold text-white text-base">2. AI Problem & Department Routing</h3>
-                          <p className="text-xs text-slate-400">Automated classification powered by CivicEye Vision</p>
-                        </div>
+                  {/* AI Classification Error Banner */}
+                  {aiError && (
+                    <div className="p-3 rounded-lg bg-amber-950/60 border border-amber-600/60 text-amber-200 text-xs flex items-start gap-2">
+                      <AlertTriangle size={15} className="text-amber-400 shrink-0 mt-0.5" />
+                      <div className="flex-1">
+                        <span className="font-semibold block">AI Classification Unavailable</span>
+                        <span>{aiError}</span>
                       </div>
-                      {isAiAnalyzing && (
-                        <div className="flex items-center gap-1.5 text-xs text-teal-400">
-                          <LoadingSpinner size="sm" />
-                          <span>Analyzing scene...</span>
+                    </div>
+                  )}
+
+                  {/* AI Classification Result & Low-Confidence Handling */}
+                  {aiResult && (
+                    <div
+                      className={`bg-[#101C23] border rounded-lg p-3 text-xs space-y-1.5 ${
+                        isLowConfidenceAi ? 'border-amber-500/60' : 'border-[#367F77]'
+                      }`}
+                    >
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <span className="font-semibold text-[#91C8BD] flex items-center gap-1.5">
+                          <Sparkles size={13} />
+                          <span>
+                            AI Suggested Category:{' '}
+                            <strong className="text-[#F4F7F7]">{aiResult.category}</strong>
+                            {typeof aiResult.confidence === 'number'
+                              ? ` (${Math.round(aiResult.confidence * 100)}% confidence)`
+                              : ''}
+                          </span>
+                        </span>
+                        <span className="text-[#AABDC2]">
+                          Suggested Dept:{' '}
+                          <strong className="text-[#F4F7F7]">{aiResult.department_name}</strong>
+                        </span>
+                      </div>
+
+                      {isLowConfidenceAi && (
+                        <div className="p-2 rounded bg-amber-500/10 border border-amber-500/30 text-amber-200 text-[11px] flex items-center gap-1.5">
+                          <AlertTriangle size={13} className="text-amber-400 shrink-0" />
+                          <span>
+                            {aiResult.confidence_warning ||
+                              'Low AI confidence detected. Please verify and confirm the issue category manually above.'}
+                          </span>
+                        </div>
+                      )}
+
+                      {aiResult.suggested_description && (
+                        <p className="text-[#AABDC2] text-[11px]">
+                          {aiResult.suggested_description}
+                        </p>
+                      )}
+
+                      {manualCategoryOverride && category !== aiResult.category && (
+                        <div className="pt-1 flex items-center justify-between gap-2 border-t border-[#2A444E] text-[11px]">
+                          <span className="text-amber-300">
+                            Manual selection active: <strong>{category}</strong>
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setCategory(aiResult.category)
+                              setManualCategoryOverride(false)
+                            }}
+                            className="text-[#91C8BD] hover:text-[#F4F7F7] underline font-semibold"
+                          >
+                            Use AI suggestion ({aiResult.category})
+                          </button>
                         </div>
                       )}
                     </div>
+                  )}
 
-                    {aiResult ? (
-                      <div className="bg-slate-950 border border-teal-500/30 rounded-xl p-4 space-y-3">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                          <div>
-                            <span className="text-slate-500 block uppercase tracking-wider text-[10px]">
-                              Identified Problem
-                            </span>
-                            <span className="text-white font-semibold text-sm flex items-center gap-1.5 mt-0.5">
-                              {categoryEmoji(aiResult.category)} {aiResult.category}
-                            </span>
-                            <span className="text-[11px] text-teal-400 font-mono mt-0.5 block">
-                              Confidence: {Math.round(aiResult.confidence * 100)}%
-                            </span>
-                          </div>
-
-                          <div>
-                            <span className="text-slate-500 block uppercase tracking-wider text-[10px]">
-                              Assigned Department
-                            </span>
-                            <span className="text-white font-semibold text-sm flex items-center gap-1.5 mt-0.5">
-                              <Building2 size={13} className="text-teal-400" />
-                              {aiResult.department_name}
-                            </span>
-                            <span className="text-[11px] text-amber-400/90 mt-0.5 block">
-                              Severity: {aiResult.severity.toUpperCase()} Priority
-                            </span>
-                          </div>
-                        </div>
-
-                        {aiResult.detected_features && aiResult.detected_features.length > 0 && (
-                          <div className="pt-2 border-t border-slate-800">
-                            <span className="text-[10px] text-slate-500 uppercase tracking-wider block mb-1">
-                              Key Visual Features Detected
-                            </span>
-                            <div className="flex flex-wrap gap-1.5">
-                              {aiResult.detected_features.map((feat) => (
-                                <span
-                                  key={feat}
-                                  className="text-[11px] bg-slate-900 border border-slate-800 text-slate-300 px-2 py-0.5 rounded"
-                                >
-                                  {feat}
-                                </span>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    ) : (
-                      <div className="p-4 rounded-xl bg-slate-950/60 border border-slate-800/80 text-slate-400 text-xs flex items-center gap-3">
-                        <Info size={16} className="text-teal-400 flex-shrink-0" />
-                        <span>
-                          Upload a photo/video or select a sample above. CivicEye will automatically recognize whether it's a pothole, garbage, streetlight, or fallen branch, and dispatch it to the appropriate municipal body.
-                        </span>
-                      </div>
-                    )}
-
-                    {/* Manual Category Override if citizen wants to adjust */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                      <label className="text-xs text-slate-400 block mb-1.5 font-medium">
-                        Confirm or Adjust Category
+                      <label className="block text-xs font-semibold text-[#F4F7F7] mb-1">
+                        Priority
                       </label>
                       <select
-                        value={selectedCategory}
-                        onChange={(e) => {
-                          const cat = e.target.value
-                          setSelectedCategory(cat)
-                          // update department recommendation
-                          if (cat === 'Pothole') setSelectedDeptName('Roads & Infrastructure')
-                          else if (cat === 'Garbage') setSelectedDeptName('Sanitation & Waste')
-                          else if (cat === 'Waterlogging' || cat === 'Open Drain') setSelectedDeptName('Drainage & Waterways')
-                          else if (cat === 'Fallen Tree') setSelectedDeptName('Parks & Horticulture')
-                          else if (cat === 'Broken Streetlight') setSelectedDeptName('Electrical & Lighting')
-                        }}
-                        className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-teal-500"
+                        value={severity}
+                        onChange={(e) => setSeverity(e.target.value as ComplaintSeverity)}
+                        className="w-full bg-[#101C23] border border-[#2A444E] focus:border-[#91C8BD] rounded-lg px-3 py-2 text-xs sm:text-sm text-[#F4F7F7] outline-none"
                       >
-                        <option value="Pothole">Pothole / Road Damage</option>
-                        <option value="Garbage">Garbage / Waste Overflow</option>
-                        <option value="Waterlogging">Waterlogging / Street Flooding</option>
-                        <option value="Broken Streetlight">Broken Streetlight / Dark Spot</option>
-                        <option value="Fallen Tree">Fallen Tree / Heavy Branches</option>
-                        <option value="Open Drain">Open Drain / Manhole Hazard</option>
-                        <option value="Stray Animals">Stray Animal Nuisance</option>
-                        <option value="Other">Other Civic Grievance</option>
+                        <option value="low">Low — Minor issue</option>
+                        <option value="medium">Medium — Standard repair</option>
+                        <option value="high">High — Safety hazard</option>
+                        <option value="critical">Critical — Urgent obstruction</option>
                       </select>
                     </div>
 
-                    {/* Description field */}
                     <div>
-                      <label className="text-xs text-slate-400 block mb-1.5 font-medium">
-                        Problem Description
+                      <label className="block text-xs font-semibold text-[#F4F7F7] mb-1">
+                        Assigned Department
                       </label>
-                      <textarea
-                        rows={3}
-                        value={description}
-                        onChange={(e) => setDescription(e.target.value)}
-                        placeholder="Briefly describe what needs fixing..."
-                        className="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-teal-500 placeholder:text-slate-600"
-                        required
-                      />
+                      <div className="w-full bg-[#101C23] border border-[#2A444E] rounded-lg px-3 py-2 text-xs sm:text-sm font-medium text-[#91C8BD] flex items-center gap-2">
+                        <Building2 size={14} className="text-[#91C8BD]" />
+                        <span>{selectedDept}</span>
+                      </div>
                     </div>
                   </div>
                 </div>
 
-                {/* Right Column: Location & Anonymous Submission (5 cols) */}
-                <div className="lg:col-span-5 space-y-6">
-                  {/* Location Picker */}
-                  <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 sm:p-6 space-y-4">
-                    <div className="flex items-center justify-between">
-                      <h3 className="font-bold text-white text-base flex items-center gap-2">
-                        <MapPin className="w-5 h-5 text-teal-400" />
-                        3. Issue Location
-                      </h3>
+                {/* 3. Photo Evidence Upload & Preview */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label
+                      htmlFor="citizen-media-upload"
+                      className="block text-xs sm:text-sm font-semibold text-[#F4F7F7]"
+                    >
+                      Photo Evidence{' '}
+                      <span className="text-xs font-normal text-[#AABDC2]">
+                        (Optional · JPG, PNG, WEBP, GIF up to 20 MB)
+                      </span>
+                    </label>
+                  </div>
+
+                  <input
+                    id="citizen-media-upload"
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,.jpg,.jpeg,.png,.webp,.gif,.mp4,.webm"
+                    onChange={handleFileChange}
+                    className="hidden"
+                  />
+
+                  {mediaError && (
+                    <div
+                      role="alert"
+                      className="p-2.5 rounded-lg bg-red-950/60 border border-red-700/60 text-red-200 text-xs flex items-center gap-2"
+                    >
+                      <AlertTriangle size={14} className="text-red-400 shrink-0" />
+                      <span>{mediaError}</span>
+                    </div>
+                  )}
+
+                  {!mediaPreview ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (fileInputRef.current) {
+                          fileInputRef.current.value = ''
+                          fileInputRef.current.click()
+                        }
+                      }}
+                      className="w-full border border-dashed border-[#367F77] bg-[#101C23] hover:bg-[#233B44] rounded-lg p-4 text-center transition-colors flex items-center justify-center gap-2"
+                    >
+                      <Upload size={16} className="text-[#91C8BD]" />
+                      <span className="text-xs font-semibold text-[#F4F7F7]">
+                        Select photo or video (Generates preview & auto-classifies issue)
+                      </span>
+                    </button>
+                  ) : (
+                    <div
+                      data-testid="photo-preview-container"
+                      className="bg-[#101C23] border border-[#367F77] rounded-lg p-3 space-y-2.5"
+                    >
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div className="text-xs font-semibold text-[#F4F7F7] flex items-center gap-1.5 min-w-0">
+                          <Camera size={14} className="text-[#91C8BD] shrink-0" />
+                          <span className="truncate">{mediaFile?.name || 'Selected Photo'}</span>
+                          {mediaFile && (
+                            <span className="text-[11px] font-normal text-[#AABDC2] shrink-0">
+                              ({formatFileSize(mediaFile.size)})
+                            </span>
+                          )}
+                          {isUploading && (
+                            <span className="text-[11px] text-[#91C8BD] inline-flex items-center gap-1 shrink-0">
+                              <Loader2 size={11} className="animate-spin" /> Uploading…
+                            </span>
+                          )}
+                          {isAnalyzing && (
+                            <span className="text-[11px] text-[#91C8BD] inline-flex items-center gap-1 shrink-0">
+                              <Loader2 size={11} className="animate-spin" /> AI Analyzing…
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (fileInputRef.current) {
+                                fileInputRef.current.value = ''
+                                fileInputRef.current.click()
+                              }
+                            }}
+                            className="text-xs font-semibold text-[#91C8BD] hover:text-[#F4F7F7] inline-flex items-center gap-1"
+                          >
+                            <RefreshCw size={12} />
+                            Change
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleClearMedia}
+                            className="text-xs font-semibold text-red-400 hover:underline inline-flex items-center gap-1"
+                          >
+                            <X size={13} />
+                            Remove
+                          </button>
+                        </div>
+                      </div>
+
+                      {mediaFile?.type.startsWith('video/') ? (
+                        <video
+                          data-testid="media-preview-video"
+                          src={mediaPreview}
+                          controls
+                          className="w-full max-h-56 rounded-lg border border-[#2A444E] bg-black"
+                        />
+                      ) : (
+                        <img
+                          data-testid="media-preview-image"
+                          src={mediaPreview}
+                          alt="Selected civic issue preview"
+                          onError={(e) => {
+                            const imgEl = e.currentTarget
+                            if (mediaDataUrl && imgEl.src !== mediaDataUrl) {
+                              imgEl.src = mediaDataUrl
+                            } else if (uploadedMediaUrl && imgEl.src !== uploadedMediaUrl) {
+                              imgEl.src = uploadedMediaUrl
+                            }
+                          }}
+                          className="w-full max-h-56 object-contain rounded-lg border border-[#2A444E] bg-[#0B1419]"
+                        />
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* 4. Interactive Location Picker */}
+                <div className="space-y-2.5">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <label className="text-xs sm:text-sm font-semibold text-[#F4F7F7] flex items-center gap-1.5">
+                      <MapPin size={15} className="text-[#91C8BD]" />
+                      <span>Location (Click map, drag pin, search landmark, or use GPS)</span>
+                    </label>
+                    <button
+                      type="button"
+                      onClick={handleUseCurrentLocation}
+                      disabled={isLocatingGps}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#233B44] hover:bg-[#367F77] border border-[#367F77] text-xs font-semibold text-[#F4F7F7] transition-colors disabled:opacity-60"
+                    >
+                      <Navigation
+                        size={13}
+                        className={`text-[#91C8BD] ${isLocatingGps ? 'animate-spin' : ''}`}
+                      />
+                      <span>
+                        {isLocatingGps ? 'Locating GPS…' : 'Use My Current Location'}
+                      </span>
+                    </button>
+                  </div>
+
+                  {/* Landmark / Street Search Box */}
+                  <MapSearchBox onSelectLocation={handleSearchSelect} />
+
+                  {/* Optional street/landmark note input */}
+                  <input
+                    type="text"
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    placeholder="Street or landmark details (optional)"
+                    className="w-full bg-[#101C23] border border-[#2A444E] focus:border-[#91C8BD] rounded-lg px-3 py-2 text-xs sm:text-sm text-[#F4F7F7] placeholder-[#AABDC2]/60 outline-none"
+                  />
+
+                  {gpsNotice && (
+                    <div
+                      role="status"
+                      className={`p-2.5 rounded-lg border text-xs flex items-center gap-2 ${
+                        gpsNotice.type === 'warning'
+                          ? 'bg-amber-500/10 border-amber-500/30 text-amber-200'
+                          : gpsNotice.type === 'success'
+                          ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-200'
+                          : 'bg-[#101C23] border-[#2A444E] text-[#91C8BD]'
+                      }`}
+                    >
+                      <MapPin size={14} className="shrink-0" />
+                      <span>{gpsNotice.text}</span>
+                    </div>
+                  )}
+
+                  {/* Interactive Leaflet Map */}
+                  <div className="h-[300px] sm:h-[340px] w-full rounded-xl overflow-hidden border border-[#2A444E] relative">
+                    <MapContainer
+                      center={[latitude, longitude]}
+                      zoom={13}
+                      scrollWheelZoom={false}
+                      touchZoom={true}
+                      dragging={true}
+                      zoomControl={false}
+                      style={{ height: '100%', width: '100%' }}
+                    >
+                      <SafeTileLayer />
+                      <MapInvalidator trigger={activeTab} />
+                      <MapInteractiveController
+                        flyTarget={flyTarget}
+                        onMapClick={handleMapPinSelect}
+                      />
+                      <MapOverlayToolbar
+                        onMyLocation={handleUseCurrentLocation}
+                        isLocatingExternal={isLocatingGps}
+                        fallbackLat={latitude}
+                        fallbackLng={longitude}
+                      />
+                      <SelectedLocationPin
+                        latitude={latitude}
+                        longitude={longitude}
+                        onMove={handleMapPinSelect}
+                      />
+                    </MapContainer>
+                  </div>
+
+                  {/* Accurate Coordinate Readout & Manual Coordinate Entry Fallback */}
+                  <div className="bg-[#101C23] border border-[#2A444E] rounded-lg p-3 space-y-2 text-xs">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <span className="font-mono text-[#F4F7F7]">
+                        Lat: <strong>{latitude.toFixed(5)}</strong> · Lng:{' '}
+                        <strong>{longitude.toFixed(5)}</strong>
+                      </span>
+                      <span className="text-[11px] text-[#91C8BD]">
+                        {locationSource === 'gps'
+                          ? 'Source: Current GPS Location'
+                          : locationSource === 'search'
+                          ? 'Source: Landmark Search'
+                          : locationSource === 'manual_coords'
+                          ? 'Source: Manual Coordinates'
+                          : locationSource === 'manual_pin'
+                          ? 'Source: Manual Map Pin'
+                          : 'Click map, drag pin, or enter coordinates'}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1.5 border-t border-[#2A444E]/70">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[11px] text-[#AABDC2] whitespace-nowrap">Lat:</span>
+                        <input
+                          type="number"
+                          step="any"
+                          value={manualLatInput}
+                          onChange={(e) => setManualLatInput(e.target.value)}
+                          aria-label="Manual Latitude"
+                          className="w-full bg-[#1C3038] border border-[#2A444E] rounded px-2 py-1 text-xs font-mono text-[#F4F7F7] outline-none focus:border-[#91C8BD]"
+                        />
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[11px] text-[#AABDC2] whitespace-nowrap">Lng:</span>
+                        <input
+                          type="number"
+                          step="any"
+                          value={manualLngInput}
+                          onChange={(e) => setManualLngInput(e.target.value)}
+                          aria-label="Manual Longitude"
+                          className="w-full bg-[#1C3038] border border-[#2A444E] rounded px-2 py-1 text-xs font-mono text-[#F4F7F7] outline-none focus:border-[#91C8BD]"
+                        />
+                      </div>
                       <button
                         type="button"
-                        onClick={detectUserLocation}
-                        disabled={isDetectingLocation}
-                        className="px-2.5 py-1 rounded-lg bg-teal-500/10 hover:bg-teal-500/20 text-teal-300 border border-teal-500/30 text-xs font-medium flex items-center gap-1.5 transition-colors disabled:opacity-50"
+                        onClick={handleApplyManualCoords}
+                        className="px-3 py-1 rounded bg-[#233B44] hover:bg-[#367F77] border border-[#367F77]/50 text-[#F4F7F7] text-xs font-semibold transition-colors"
                       >
-                        <Crosshair size={12} className={isDetectingLocation ? 'animate-spin' : ''} />
-                        {isDetectingLocation ? 'Detecting...' : 'Use My GPS'}
+                        Center Map on Coordinates
                       </button>
                     </div>
+                  </div>
+                </div>
 
-                    <div className="text-xs text-slate-400">
-                      <span className="font-mono text-slate-300">
-                        {position[0].toFixed(5)}, {position[1].toFixed(5)}
+                {/* PHASE 2 — FEATURE A: Duplicate Complaint Warning Panel */}
+                {duplicateWarnings.length > 0 && (
+                  <div
+                    data-testid="duplicate-complaint-warning"
+                    className="bg-amber-950/40 border-2 border-amber-500/70 rounded-xl p-4 space-y-4"
+                  >
+                    <div className="flex items-start gap-2.5">
+                      <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+                      <div className="space-y-1">
+                        <h3 className="text-sm font-bold text-amber-200">
+                          Possible Duplicate Complaint Found ({duplicateWarnings.length})
+                        </h3>
+                        <p className="text-xs text-amber-100/90 leading-relaxed">
+                          We found existing unresolved complaint(s) matching your location, category,
+                          or description. You can view the existing complaint and confirm it is the
+                          same issue, or continue to submit a separate report.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2.5">
+                      {duplicateWarnings.map((dup) => (
+                        <div
+                          key={dup.id}
+                          className="bg-[#101C23] border border-amber-500/40 rounded-lg p-3.5 space-y-2.5 text-xs"
+                        >
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="font-mono font-bold text-[#91C8BD]">
+                                {dup.complaint_id}
+                              </span>
+                              <span className="font-semibold text-[#F4F7F7]">{dup.category}</span>
+                              {dup.distance_meters !== null && (
+                                <span className="text-amber-300 font-mono">
+                                  · {dup.distance_meters}m away
+                                </span>
+                              )}
+                              {dup.description_similarity > 0 && (
+                                <span className="text-[#91C8BD] font-mono">
+                                  · {Math.round(dup.description_similarity * 100)}% text similarity
+                                </span>
+                              )}
+                            </div>
+                            <span className="text-[11px] font-semibold text-[#91C8BD]">
+                              Status: {STATUS_LABELS[dup.status]?.label || dup.status}
+                            </span>
+                          </div>
+
+                          <p className="text-[#F4F7F7] text-xs">{dup.description}</p>
+
+                          {dup.match_reasons && dup.match_reasons.length > 0 && (
+                            <div className="text-[11px] text-[#AABDC2]">
+                              Why flagged: {dup.match_reasons.join(' · ')}
+                            </div>
+                          )}
+
+                          <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-[#2A444E]">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setActiveTab('track')
+                                setTrackCode(dup.complaint_id)
+                                handleTrackLookup(undefined, dup.complaint_id)
+                              }}
+                              className="px-3 py-1.5 rounded-lg bg-[#1C3038] hover:bg-[#233B44] border border-[#2A444E] text-[#91C8BD] font-semibold transition-colors"
+                            >
+                              View Existing Complaint
+                            </button>
+
+                            <button
+                              type="button"
+                              disabled={isConfirmingDuplicateId === dup.complaint_id}
+                              onClick={() => handleConfirmSameIssue(dup)}
+                              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-[#367F77] hover:bg-[#2d6b64] text-[#F4F7F7] font-semibold transition-colors disabled:opacity-50"
+                            >
+                              <GitMerge size={13} />
+                              <span>
+                                {isConfirmingDuplicateId === dup.complaint_id
+                                  ? 'Confirming…'
+                                  : 'Confirm Same Issue'}
+                              </span>
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-amber-500/30">
+                      <span className="text-[11px] text-amber-200/90">
+                        Not the same issue? Submit your complaint as a new separate record:
                       </span>
-                      <p className="text-slate-500 text-[11px] mt-0.5 truncate">{address}</p>
-                    </div>
-
-                    {/* Interactive Leaflet Pin Selector */}
-                    <div className="h-56 w-full rounded-xl overflow-hidden border border-slate-800 relative z-0">
-                      <MapContainer
-                        center={position}
-                        zoom={13}
-                        style={{ height: '100%', width: '100%' }}
-                        className="z-0"
+                      <button
+                        type="button"
+                        disabled={isSubmitting}
+                        onClick={executeCreateSeparateComplaint}
+                        className="px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold transition-colors disabled:opacity-50"
                       >
-                        <TileLayer
-                          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                        />
-                        <FlyToPosition position={position} />
-                        <MapDraggablePin
-                          position={position}
-                          onPositionChange={(newPos) => {
-                            setPosition(newPos)
-                            setAddress(`Pinned Location (${newPos[0].toFixed(4)}, ${newPos[1].toFixed(4)}) · Pune`)
-                          }}
-                        />
-                      </MapContainer>
-                      <div className="absolute bottom-2 left-2 bg-slate-900/90 backdrop-blur-md px-2.5 py-1 rounded text-[10px] text-slate-400 border border-slate-800 pointer-events-none z-10">
-                        Click on map to adjust exact pin
-                      </div>
+                        {isSubmitting ? 'Submitting Separate Report…' : 'Continue with Separate Report'}
+                      </button>
                     </div>
                   </div>
+                )}
 
-                  {/* Anonymous vs Contact Toggle */}
-                  <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 sm:p-6 space-y-4">
-                    <h3 className="font-bold text-white text-base flex items-center gap-2">
-                      <Shield className="w-5 h-5 text-teal-400" />
-                      4. Privacy & Submission
-                    </h3>
-
-                    {/* Anonymous toggle card */}
-                    <label className="flex items-start gap-3 p-3 rounded-xl bg-slate-950 border border-slate-800 hover:border-slate-700 cursor-pointer transition-colors">
-                      <input
-                        type="checkbox"
-                        checked={isAnonymous}
-                        onChange={(e) => setIsAnonymous(e.target.checked)}
-                        className="mt-0.5 accent-teal-500 w-4 h-4 rounded"
-                      />
-                      <div className="text-xs">
-                        <span className="font-semibold text-white block">Submit Anonymously</span>
-                        <span className="text-slate-500 leading-relaxed block mt-0.5">
-                          No identity, phone, or email recorded. You can still track progress using the generated unique ID.
-                        </span>
-                      </div>
-                    </label>
-
-                    {/* If not anonymous, optional contact details */}
-                    {!isAnonymous && (
-                      <div className="space-y-3 p-3 bg-slate-950/60 border border-slate-800 rounded-xl text-xs animate-in fade-in duration-200">
-                        <div>
-                          <label className="text-slate-400 block mb-1">Your Name (Optional)</label>
-                          <input
-                            type="text"
-                            value={contactName}
-                            onChange={(e) => setContactName(e.target.value)}
-                            placeholder="e.g. Rahul Deshmukh"
-                            className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white focus:outline-none focus:border-teal-500"
-                          />
-                        </div>
-                        <div>
-                          <label className="text-slate-400 block mb-1">Phone / WhatsApp (For SMS updates)</label>
-                          <input
-                            type="tel"
-                            value={contactPhone}
-                            onChange={(e) => setContactPhone(e.target.value)}
-                            placeholder="+91 98765 43210"
-                            className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white focus:outline-none focus:border-teal-500"
-                          />
-                        </div>
-                      </div>
-                    )}
-
-                    {submitError && (
-                      <div className="p-3 bg-red-950/50 border border-red-800/60 rounded-xl text-xs text-red-300 flex items-center gap-2">
-                        <AlertTriangle size={15} className="flex-shrink-0" />
-                        <span>{submitError}</span>
-                      </div>
-                    )}
-
-                    <button
-                      type="submit"
-                      disabled={isSubmitting}
-                      className="w-full py-3.5 bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-400 hover:to-emerald-400 text-slate-950 font-bold rounded-xl text-sm transition-all shadow-lg shadow-teal-900/30 flex items-center justify-center gap-2 disabled:opacity-50"
-                    >
-                      {isSubmitting ? (
-                        <>
-                          <LoadingSpinner size="sm" />
-                          <span>Routing to Department...</span>
-                        </>
-                      ) : (
-                        <>
-                          <CheckCircle2 size={16} />
-                          <span>Submit Civic Grievance</span>
-                        </>
-                      )}
-                    </button>
-                    <p className="text-[11px] text-slate-500 text-center">
-                      Official municipal record generated under Pune Smart City Redressal framework.
-                    </p>
-                  </div>
+                {/* Submit Button */}
+                <div className="pt-2 border-t border-[#2A444E] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <span className="text-xs text-[#AABDC2]">
+                    {citizenSession
+                      ? `Submitting as ${citizenSession.user.full_name} · Personal contact info is never exposed publicly.`
+                      : 'Anonymous submission · Personal data is never exposed.'}
+                  </span>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting || isUploading || isCheckingDuplicates}
+                    className="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl bg-[#367F77] hover:bg-[#2d6b64] text-[#F4F7F7] text-sm font-semibold transition-colors disabled:opacity-50 whitespace-nowrap"
+                  >
+                    <Send size={15} />
+                    <span>
+                      {isCheckingDuplicates
+                        ? 'Checking Duplicates…'
+                        : isSubmitting
+                        ? 'Submitting…'
+                        : 'Submit Complaint'}
+                    </span>
+                  </button>
                 </div>
               </form>
             )}
           </div>
         )}
 
-        {/* ── TAB 2: TRACK YOUR COMPLAINT ── */}
+        {/* TAB 2: TRACK MY COMPLAINT */}
         {activeTab === 'track' && (
-          <div className="space-y-6 max-w-4xl mx-auto">
-            {/* Search Box */}
-            <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 space-y-4">
-              <div>
-                <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                  <Search className="w-5 h-5 text-teal-400" />
-                  Track Existing Civic Complaint
-                </h2>
-                <p className="text-xs text-slate-400 mt-1">
-                  Enter your unique tracking ID (e.g., <span className="font-mono text-teal-300">CE-202609-0001</span>) to see current status, assigned crew, and photo verification.
-                </p>
-              </div>
-
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={trackSearchId}
-                  onChange={(e) => setTrackSearchId(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') handleTrackLookup()
-                  }}
-                  placeholder="Enter Tracking ID (e.g., CE-202609-0001)"
-                  className="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white font-mono placeholder:font-sans placeholder:text-slate-600 focus:outline-none focus:border-teal-500"
-                />
+          <div className="space-y-5">
+            <form
+              onSubmit={(e) => handleTrackLookup(e)}
+              className="bg-[#1C3038] border border-[#2A444E] rounded-2xl p-5 sm:p-6 space-y-3.5"
+            >
+              <label className="block text-xs sm:text-sm font-semibold text-[#F4F7F7]">
+                Complaint Reference Number
+              </label>
+              <div className="flex flex-col sm:flex-row gap-2.5">
+                <div className="relative flex-1">
+                  <Search
+                    size={15}
+                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#AABDC2]"
+                  />
+                  <input
+                    type="text"
+                    value={trackCode}
+                    onChange={(e) => setTrackCode(e.target.value)}
+                    placeholder="e.g., CE-202609-0001"
+                    className="w-full bg-[#101C23] border border-[#2A444E] focus:border-[#91C8BD] rounded-lg pl-10 pr-4 py-2.5 text-sm font-mono text-[#F4F7F7] outline-none"
+                  />
+                </div>
                 <button
-                  type="button"
-                  onClick={() => handleTrackLookup()}
-                  disabled={isTrackingLoading || !trackSearchId.trim()}
-                  className="px-6 py-3 bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold rounded-xl text-sm transition-all flex items-center gap-2 disabled:opacity-50"
+                  type="submit"
+                  disabled={isTracking}
+                  className="px-5 py-2.5 rounded-lg bg-[#367F77] hover:bg-[#2d6b64] text-[#F4F7F7] text-sm font-semibold transition-colors whitespace-nowrap disabled:opacity-50"
                 >
-                  {isTrackingLoading ? <LoadingSpinner size="sm" /> : <Search size={16} />}
-                  <span>Search</span>
+                  {isTracking ? 'Checking…' : 'Track Status'}
                 </button>
               </div>
+              <div className="flex flex-wrap items-center gap-2 text-xs text-[#AABDC2]">
+                <span>Try sample ID:</span>
+                {['CE-202609-0001', 'CE-202609-0002', 'CE-202609-0005'].map((sampleId) => (
+                  <button
+                    key={sampleId}
+                    type="button"
+                    onClick={() => {
+                      setTrackCode(sampleId)
+                      handleTrackLookup(undefined, sampleId)
+                    }}
+                    className="font-mono text-[#91C8BD] hover:text-[#F4F7F7] underline"
+                  >
+                    {sampleId}
+                  </button>
+                ))}
+              </div>
+            </form>
 
-              {/* Quick chips of recent complaints on this device */}
-              {recentTrackingIds.length > 0 && (
-                <div className="flex items-center gap-2 pt-2 flex-wrap">
-                  <span className="text-[11px] text-slate-500">Recently filed from this device:</span>
-                  {recentTrackingIds.map((id) => (
-                    <button
-                      key={id}
-                      type="button"
-                      onClick={() => {
-                        setTrackSearchId(id)
-                        handleTrackLookup(id)
-                      }}
-                      className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-teal-300 border border-slate-700 rounded-lg text-xs font-mono transition-colors"
-                    >
-                      {id}
-                    </button>
-                  ))}
-                </div>
-              )}
+            {trackError && (
+              <div className="p-3.5 rounded-xl bg-red-950/60 border border-red-700/60 text-red-200 text-xs sm:text-sm flex items-center gap-2">
+                <AlertTriangle size={16} className="text-red-400 flex-shrink-0" />
+                <span>{trackError}</span>
+              </div>
+            )}
 
-              {trackError && (
-                <div className="p-4 bg-red-950/40 border border-red-800/60 rounded-xl text-xs text-red-300 flex items-center gap-2">
-                  <AlertTriangle size={16} className="flex-shrink-0" />
-                  <span>{trackError}</span>
-                </div>
-              )}
-            </div>
-
-            {/* Complaint Detail Card */}
             {trackedComplaint && (
-              <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 sm:p-8 space-y-6 animate-in fade-in duration-300">
-                {/* Header */}
-                <div className="flex flex-wrap items-start justify-between gap-4 border-b border-slate-800 pb-5">
+              <div className="bg-[#1C3038] border border-[#2A444E] rounded-2xl p-5 sm:p-6 space-y-5">
+                <div className="flex flex-wrap items-start justify-between gap-3 border-b border-[#2A444E] pb-4">
                   <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-xl font-bold font-mono text-teal-400">
-                        {trackedComplaint.complaint_id}
-                      </span>
-                      <span
-                        className={`text-xs uppercase font-bold px-2.5 py-0.5 rounded-full ${
-                          trackedComplaint.status === 'resolved' || trackedComplaint.status === 'closed'
-                            ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                            : trackedComplaint.status === 'in_progress'
-                            ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                            : 'bg-teal-500/20 text-teal-400 border border-teal-500/30'
+                    <span className="text-xs text-[#AABDC2] font-mono">
+                      {trackedComplaint.complaint_id}
+                    </span>
+                    <h2 className="text-lg font-bold text-[#F4F7F7] mt-0.5">
+                      {trackedComplaint.category}
+                    </h2>
+                    <p className="text-xs text-[#AABDC2] mt-0.5">
+                      {trackedComplaint.address ||
+                        `Pune (${trackedComplaint.latitude.toFixed(4)}°N, ${trackedComplaint.longitude.toFixed(4)}°E)`}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-xs text-[#AABDC2] block">Status</span>
+                    <span className="text-sm font-bold text-[#91C8BD]">
+                      {STATUS_LABELS[trackedComplaint.status]?.label || 'Submitted'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* 5-Step Progress */}
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                  {[
+                    { step: 1, title: 'Submitted' },
+                    { step: 2, title: 'Under Review' },
+                    { step: 3, title: 'Assigned' },
+                    { step: 4, title: 'In Progress' },
+                    { step: 5, title: 'Resolved' },
+                  ].map((item) => {
+                    const currentStep = STATUS_LABELS[trackedComplaint.status]?.step || 1
+                    const reached = currentStep >= item.step
+                    return (
+                      <div
+                        key={item.step}
+                        className={`p-2.5 rounded-lg border text-xs font-semibold text-center ${
+                          reached
+                            ? 'bg-[#367F77]/30 border-[#91C8BD] text-[#F4F7F7]'
+                            : 'bg-[#101C23] border-[#2A444E] text-[#AABDC2]'
                         }`}
                       >
-                        {trackedComplaint.status.replace('_', ' ')}
-                      </span>
-                    </div>
-                    <h3 className="text-base sm:text-lg font-semibold text-white">
-                      {categoryEmoji(trackedComplaint.category)} {categoryLabel(trackedComplaint.category)}
-                    </h3>
-                    <p className="text-xs text-slate-400 mt-1 max-w-xl">{trackedComplaint.description}</p>
-                  </div>
-
-                  <div className="text-right text-xs">
-                    <span className="text-slate-500 block">Reported At</span>
-                    <span className="text-slate-300 font-medium">
-                      {safeFormat(trackedComplaint.first_detected_at, 'dd MMM yyyy, HH:mm')}
-                    </span>
-                    <span className="text-slate-500 text-[11px] block mt-0.5">
-                      ({safeFormatDistanceToNow(trackedComplaint.first_detected_at)})
-                    </span>
-                  </div>
-                </div>
-
-                {/* Status Stepper Progression */}
-                <div>
-                  <h4 className="text-xs uppercase font-bold tracking-wider text-slate-400 mb-3">
-                    Progress Timeline
-                  </h4>
-                  {(() => {
-                    const steps = [
-                      { id: 'new', label: 'Report Registered' },
-                      { id: 'assigned', label: 'Assigned to Ward' },
-                      { id: 'in_progress', label: 'Repair In Progress' },
-                      { id: 'awaiting_verification', label: 'Inspection' },
-                      { id: 'resolved', label: 'Resolved & Closed' },
-                    ]
-                    const currentIdx = steps.findIndex((s) => s.id === trackedComplaint.status)
-                    const effectiveIdx = currentIdx >= 0 ? currentIdx : trackedComplaint.status === 'closed' ? 4 : 0
-
-                    return (
-                      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-                        {steps.map((st, idx) => {
-                          const isComplete = idx <= effectiveIdx
-                          const isCurrent = idx === effectiveIdx
-                          return (
-                            <div
-                              key={st.id}
-                              className={`p-3 rounded-xl border text-xs text-center transition-all ${
-                                isCurrent
-                                  ? 'bg-teal-950/80 border-teal-500/60 text-teal-200'
-                                  : isComplete
-                                  ? 'bg-slate-950 border-emerald-900/60 text-emerald-400'
-                                  : 'bg-slate-950/40 border-slate-800 text-slate-600'
-                              }`}
-                            >
-                              <div className="flex justify-center mb-1">
-                                {isComplete ? (
-                                  <CheckCircle2 size={16} className={isCurrent ? 'text-teal-400' : 'text-emerald-400'} />
-                                ) : (
-                                  <Clock size={16} className="text-slate-600" />
-                                )}
-                              </div>
-                              <span className="font-semibold block">{st.label}</span>
-                            </div>
-                          )
-                        })}
+                        {item.title}
                       </div>
                     )
-                  })()}
+                  })}
                 </div>
 
-                {/* Metadata Details */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 p-4 rounded-xl bg-slate-950 border border-slate-800 text-xs">
+                {/* Public Metadata */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-[#101C23] border border-[#2A444E] rounded-xl p-3.5 text-xs">
                   <div>
-                    <span className="text-slate-500 block uppercase tracking-wider text-[10px]">
-                      Responsible Department
-                    </span>
-                    <span className="text-white font-medium mt-0.5 block flex items-center gap-1">
-                      <Building2 size={13} className="text-teal-400" />
-                      {trackedComplaint.department || trackedComplaint.department_name || 'Municipal Roads'}
+                    <span className="text-[#AABDC2] block">Department</span>
+                    <span className="font-semibold text-[#F4F7F7] mt-0.5 block">
+                      {trackedComplaint.department_name ||
+                        trackedComplaint.department ||
+                        'Roads & Infrastructure'}
                     </span>
                   </div>
-
                   <div>
-                    <span className="text-slate-500 block uppercase tracking-wider text-[10px]">Location</span>
-                    <span className="text-white font-medium mt-0.5 block truncate flex items-center gap-1">
-                      <MapPin size={13} className="text-teal-400 flex-shrink-0" />
-                      {trackedComplaint.address || `${trackedComplaint.latitude.toFixed(4)}, ${trackedComplaint.longitude.toFixed(4)}`}
+                    <span className="text-[#AABDC2] block">Observations</span>
+                    <span className="font-semibold text-[#F4F7F7] font-mono mt-0.5 block">
+                      {trackedComplaint.observation_count} sighting(s)
                     </span>
                   </div>
-
                   <div>
-                    <span className="text-slate-500 block uppercase tracking-wider text-[10px]">
-                      Verification Photos
-                    </span>
-                    <span className="text-slate-300 font-medium mt-0.5 block">
-                      {trackedComplaint.before_image_url || trackedComplaint.evidence_image_path
-                        ? '1 Evidence on record'
-                        : 'No media attached'}
+                    <span className="text-[#AABDC2] block">Reported On</span>
+                    <span className="font-semibold text-[#F4F7F7] font-mono mt-0.5 block">
+                      {new Date(trackedComplaint.first_detected_at).toLocaleDateString()}
                     </span>
                   </div>
                 </div>
 
-                {/* Status History Notes Log */}
-                {trackedComplaint.status_history && trackedComplaint.status_history.length > 0 && (
-                  <div className="space-y-3">
-                    <h4 className="text-xs uppercase font-bold tracking-wider text-slate-400">
-                      Municipal Activity Log
-                    </h4>
-                    <div className="space-y-2">
-                      {trackedComplaint.status_history.map((log, idx) => (
-                        <div
-                          key={log.id || idx}
-                          className="flex items-start gap-3 p-3 rounded-xl bg-slate-950/70 border border-slate-800 text-xs"
-                        >
-                          <div className="w-2 h-2 rounded-full bg-teal-400 mt-1.5 flex-shrink-0" />
-                          <div className="flex-1">
-                            <div className="flex items-center justify-between">
-                              <span className="font-semibold text-slate-200 uppercase text-[11px]">
-                                Status: {log.new_status.replace('_', ' ')}
-                              </span>
-                              <span className="text-slate-500 text-[10px]">
-                                {safeFormat(log.changed_at, 'dd MMM, HH:mm')}
-                              </span>
-                            </div>
-                            {log.notes && <p className="text-slate-400 mt-1">{log.notes}</p>}
+                <div>
+                  <h3 className="text-xs font-semibold text-[#AABDC2] mb-1">Description</h3>
+                  <p className="text-sm text-[#F4F7F7]">{trackedComplaint.description}</p>
+                </div>
+
+                {/* PHASE 2 — FEATURE B: Before & After Resolution Evidence & Note */}
+                {(trackedComplaint.public_repair_verification ||
+                  trackedComplaint.before_image_url ||
+                  trackedComplaint.after_image_url ||
+                  trackedComplaint.resolution_notes) && (
+                  <div
+                    data-testid="citizen-before-after-resolution"
+                    className="bg-[#101C23] border border-[#367F77] rounded-xl p-4 space-y-3.5"
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <span className="text-xs font-bold text-[#91C8BD] flex items-center gap-1.5">
+                        <FileCheck2 size={14} />
+                        <span>Before & After Resolution Evidence</span>
+                      </span>
+                      {trackedComplaint.public_repair_verification && (
+                        <span className="text-[11px] font-semibold text-[#91C8BD]">
+                          {trackedComplaint.public_repair_verification.status_label ||
+                            trackedComplaint.public_repair_verification.verification_status.replace(
+                              /_/g,
+                              ' '
+                            )}
+                        </span>
+                      )}
+                    </div>
+
+                    {(trackedComplaint.resolution_notes ||
+                      trackedComplaint.public_repair_verification?.public_summary) && (
+                      <div className="p-3 rounded-lg bg-[#1C3038] border border-[#2A444E] space-y-1">
+                        <div className="text-[11px] font-semibold text-[#91C8BD]">
+                          Official Resolution Note
+                        </div>
+                        <p className="text-xs sm:text-sm text-[#F4F7F7] leading-relaxed">
+                          {trackedComplaint.resolution_notes ||
+                            trackedComplaint.public_repair_verification?.public_summary}
+                        </p>
+                      </div>
+                    )}
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                      {(trackedComplaint.before_image_url ||
+                        trackedComplaint.public_repair_verification?.before_image_url ||
+                        trackedComplaint.media_url ||
+                        trackedComplaint.evidence_image_path) && (
+                        <div className="bg-[#1C3038] border border-[#2A444E] rounded-lg p-2.5 space-y-1.5">
+                          <div className="flex items-center justify-between text-[11px]">
+                            <span className="font-bold text-red-300">
+                              Original Complaint Image (Before)
+                            </span>
+                            <span className="text-[#AABDC2] font-mono">
+                              {new Date(trackedComplaint.first_detected_at).toLocaleDateString()}
+                            </span>
                           </div>
+                          <img
+                            src={
+                              trackedComplaint.before_image_url ||
+                              trackedComplaint.public_repair_verification?.before_image_url ||
+                              trackedComplaint.media_url ||
+                              trackedComplaint.evidence_image_path ||
+                              ''
+                            }
+                            alt="Original Complaint Before Repair"
+                            className="w-full h-44 object-cover rounded border border-[#2A444E]"
+                          />
+                        </div>
+                      )}
+
+                      {(trackedComplaint.after_image_url ||
+                        trackedComplaint.resolution_evidence_path ||
+                        trackedComplaint.public_repair_verification?.after_image_url) && (
+                        <div className="bg-[#1C3038] border border-emerald-500/40 rounded-lg p-2.5 space-y-1.5">
+                          <div className="flex items-center justify-between text-[11px]">
+                            <span className="font-bold text-emerald-300">
+                              Resolution Image (After Repair)
+                            </span>
+                            {trackedComplaint.resolved_at && (
+                              <span className="text-[#AABDC2] font-mono">
+                                {new Date(trackedComplaint.resolved_at).toLocaleDateString()}
+                              </span>
+                            )}
+                          </div>
+                          <img
+                            src={
+                              trackedComplaint.after_image_url ||
+                              trackedComplaint.resolution_evidence_path ||
+                              trackedComplaint.public_repair_verification?.after_image_url ||
+                              ''
+                            }
+                            alt="After Repair Resolution"
+                            className="w-full h-44 object-cover rounded border border-emerald-500/40"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Tracked Location Auto-Zoom Map */}
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between text-xs text-[#AABDC2]">
+                    <span className="font-semibold">Complaint Location Map</span>
+                    <span className="font-mono text-[#91C8BD]">
+                      {trackedComplaint.latitude.toFixed(5)}, {trackedComplaint.longitude.toFixed(5)}
+                    </span>
+                  </div>
+                  <div className="h-48 w-full rounded-xl overflow-hidden border border-[#2A444E]">
+                    <MapContainer
+                      key={`track-map-${trackedComplaint.complaint_id}`}
+                      center={[trackedComplaint.latitude, trackedComplaint.longitude]}
+                      zoom={STREET_LEVEL_ZOOM}
+                      scrollWheelZoom={false}
+                      zoomControl={false}
+                      style={{ height: '100%', width: '100%' }}
+                    >
+                      <SafeTileLayer />
+                      <MapInvalidator trigger={trackedComplaint.complaint_id} />
+                      <SelectedLocationPin
+                        latitude={trackedComplaint.latitude}
+                        longitude={trackedComplaint.longitude}
+                      />
+                    </MapContainer>
+                  </div>
+                </div>
+
+                {trackedComplaint.status_history && trackedComplaint.status_history.length > 0 && (
+                  <div>
+                    <h3 className="text-xs font-semibold text-[#AABDC2] mb-2">
+                      Status Timeline
+                    </h3>
+                    <div className="space-y-2">
+                      {trackedComplaint.status_history.map((entry) => (
+                        <div
+                          key={entry.id}
+                          className="p-2.5 rounded-lg bg-[#101C23] border border-[#2A444E] flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-xs"
+                        >
+                          <div className="flex items-center gap-2">
+                            <Clock size={12} className="text-[#91C8BD] flex-shrink-0" />
+                            <span className="font-semibold text-[#F4F7F7]">
+                              {STATUS_LABELS[entry.new_status]?.label || entry.new_status}
+                            </span>
+                            {entry.notes && (
+                              <span className="text-[#AABDC2]">— {entry.notes}</span>
+                            )}
+                          </div>
+                          <span className="font-mono text-[11px] text-[#AABDC2]">
+                            {new Date(entry.changed_at).toLocaleString()}
+                          </span>
                         </div>
                       ))}
                     </div>
@@ -1149,160 +1959,67 @@ export default function CitizenHome() {
                 )}
               </div>
             )}
-          </div>
-        )}
 
-        {/* ── TAB 3: PUBLIC CIVIC FEED ── */}
-        {activeTab === 'feed' && (
-          <div className="space-y-6">
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <div>
-                <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                  <Layers className="w-5 h-5 text-teal-400" />
-                  Public Civic Activity Feed
-                </h2>
-                <p className="text-xs text-slate-400">
-                  Real-time issues reported across Pune municipal wards
-                </p>
-              </div>
-
-              {/* Filter */}
-              <div className="flex items-center gap-2 text-xs">
-                {['all', 'pothole', 'garbage', 'waterlogging', 'streetlight'].map((cat) => (
-                  <button
-                    key={cat}
-                    onClick={() => setFeedCategoryFilter(cat)}
-                    className={`px-3 py-1.5 rounded-lg font-medium transition-all ${
-                      feedCategoryFilter === cat
-                        ? 'bg-teal-500 text-slate-950 font-bold'
-                        : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
-                    }`}
-                  >
-                    {cat === 'all' ? 'All Issues' : categoryLabel(cat)}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {isFeedLoading ? (
-              <div className="py-20 flex justify-center">
-                <LoadingSpinner size="lg" />
-              </div>
-            ) : filteredFeed.length === 0 ? (
-              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-12 text-center text-slate-500 text-sm">
-                No civic grievances found in this category.
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {filteredFeed.map((comp) => (
-                  <div
-                    key={comp.id}
-                    onClick={() => {
-                      setTrackSearchId(comp.complaint_id)
-                      switchTab('track')
-                      handleTrackLookup(comp.complaint_id)
-                    }}
-                    className="p-5 rounded-xl bg-slate-900 border border-slate-800 hover:border-teal-500/50 cursor-pointer transition-all hover:bg-slate-900/80 group space-y-3"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="font-mono text-xs font-semibold text-teal-400">
-                        {comp.complaint_id}
-                      </span>
-                      <span
-                        className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full ${
-                          comp.status === 'resolved' || comp.status === 'closed'
-                            ? 'bg-emerald-500/20 text-emerald-400'
-                            : 'bg-amber-500/20 text-amber-400'
-                        }`}
-                      >
-                        {comp.status.replace('_', ' ')}
-                      </span>
+            {/* Citizen Complaint History List */}
+            {myComplaintsHistory.length > 0 && (
+              <div className="bg-[#1C3038] border border-[#2A444E] rounded-2xl p-5 space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-bold text-[#F4F7F7] flex items-center gap-2">
+                    <History size={15} className="text-[#91C8BD]" />
+                    <span>My Complaint History ({myComplaintsHistory.length})</span>
+                  </h3>
+                  <span className="text-[11px] text-[#AABDC2]">
+                    Click any complaint to view full status & resolution proof
+                  </span>
+                </div>
+                <div className="divide-y divide-[#2A444E]">
+                  {myComplaintsHistory.map((item) => (
+                    <div
+                      key={item.complaint_id}
+                      onClick={() => {
+                        setTrackCode(item.complaint_id)
+                        handleTrackLookup(undefined, item.complaint_id)
+                      }}
+                      className="py-3 flex flex-wrap items-center justify-between gap-3 cursor-pointer hover:bg-[#101C23]/50 px-2 rounded-lg transition-colors text-xs"
+                    >
+                      <div className="space-y-0.5">
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono font-bold text-[#91C8BD]">
+                            {item.complaint_id}
+                          </span>
+                          <span className="font-semibold text-[#F4F7F7]">{item.category}</span>
+                          {item.after_image_url && (
+                            <span className="text-emerald-300 font-semibold">
+                              · Before & After Proof Available
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-[#AABDC2] line-clamp-1">{item.description}</p>
+                      </div>
+                      <div className="text-right">
+                        <span className="font-semibold text-[#91C8BD] block">
+                          {STATUS_LABELS[item.status]?.label || item.status}
+                        </span>
+                        <span className="text-[10px] text-[#AABDC2] font-mono">
+                          {new Date(item.first_detected_at).toLocaleDateString()}
+                        </span>
+                      </div>
                     </div>
-
-                    <div>
-                      <h4 className="text-sm font-semibold text-white group-hover:text-teal-300 transition-colors flex items-center gap-1.5">
-                        {categoryEmoji(comp.category)} {categoryLabel(comp.category)}
-                      </h4>
-                      <p className="text-xs text-slate-400 line-clamp-2 mt-1">{comp.description}</p>
-                    </div>
-
-                    <div className="pt-2 border-t border-slate-800 text-[11px] text-slate-500 flex items-center justify-between">
-                      <span className="truncate max-w-[160px] flex items-center gap-1">
-                        <MapPin size={11} className="text-teal-400" />
-                        {comp.address || 'Pune'}
-                      </span>
-                      <span>{safeFormatDistanceToNow(comp.first_detected_at)}</span>
-                    </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             )}
           </div>
         )}
-
-        {/* ── How It Works Section ── */}
-        <div className="pt-8 border-t border-slate-800/80">
-          <div className="text-center max-w-xl mx-auto mb-8 space-y-1">
-            <h3 className="text-lg font-bold text-white">How CivicEye Works For Pune Citizens</h3>
-            <p className="text-xs text-slate-400">A seamless, automated civic resolution loop</p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="p-5 rounded-2xl bg-slate-900/50 border border-slate-800/80 space-y-3 text-center">
-              <div className="w-12 h-12 rounded-xl bg-teal-500/10 border border-teal-500/20 text-teal-400 flex items-center justify-center mx-auto">
-                <Camera size={22} />
-              </div>
-              <h4 className="font-semibold text-white text-sm">1. Capture & Geo-locate</h4>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                Take a photo or upload video directly from your phone. GPS coordinates are automatically pinned with your consent.
-              </p>
-            </div>
-
-            <div className="p-5 rounded-2xl bg-slate-900/50 border border-slate-800/80 space-y-3 text-center">
-              <div className="w-12 h-12 rounded-xl bg-teal-500/10 border border-teal-500/20 text-teal-400 flex items-center justify-center mx-auto">
-                <Sparkles size={22} />
-              </div>
-              <h4 className="font-semibold text-white text-sm">2. AI Classification & Routing</h4>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                CivicEye vision models identify severity, category, and dispatch work orders directly to Roads, Drainage, or Sanitation.
-              </p>
-            </div>
-
-            <div className="p-5 rounded-2xl bg-slate-900/50 border border-slate-800/80 space-y-3 text-center">
-              <div className="w-12 h-12 rounded-xl bg-teal-500/10 border border-teal-500/20 text-teal-400 flex items-center justify-center mx-auto">
-                <CheckCircle2 size={22} />
-              </div>
-              <h4 className="font-semibold text-white text-sm">3. Transparent Resolution</h4>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                Track status in real-time with your ID. Field inspectors verify completion with before/after photos upon resolution.
-              </p>
-            </div>
-          </div>
-        </div>
       </main>
 
-      {/* ── Public Citizen Footer ── */}
-      <footer className="border-t border-slate-800/80 bg-slate-900 py-8 text-xs text-slate-500 mt-12">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col md:flex-row items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2 text-slate-300 font-semibold mb-1">
-              <Eye size={14} className="text-teal-400" />
-              CivicEye AI · Pune Municipal Corporation Initiative
-            </div>
-            <p className="text-slate-500">Citizen grievance portal for roads, sanitation, electricity & waterways.</p>
-          </div>
-
-          <div className="flex items-center gap-6">
-            <span className="flex items-center gap-1.5 text-slate-400">
-              <Phone size={13} className="text-teal-400" />
-              PMC Toll-Free Helpline: 1800 1030 222
-            </span>
-            <Link
-              to="/admin/login"
-              className="text-slate-400 hover:text-teal-300 font-medium border-l border-slate-800 pl-6 transition-colors"
-            >
-              Municipal Staff Login →
-            </Link>
-          </div>
+      {/* Footer */}
+      <footer className="border-t border-[#2A444E] bg-[#1C3038] py-4 px-4 sm:px-6 text-xs text-[#AABDC2]">
+        <div className="max-w-4xl mx-auto flex items-center justify-between">
+          <span>CivicEye AI · Citizen Portal</span>
+          <Link to="/" className="hover:text-[#F4F7F7] hover:underline">
+            Home
+          </Link>
         </div>
       </footer>
     </div>

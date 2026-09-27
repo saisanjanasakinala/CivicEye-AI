@@ -4,30 +4,30 @@ export default {
   theme: {
     extend: {
       colors: {
+        civic: {
+          bg: '#F5F7F8',
+          primary: '#183D3D',
+          accent: '#328477',
+          card: '#DCE6E3',
+          border: '#C2D1CD',
+          muted: '#4A6666',
+        },
         navy: {
-          900: '#0f172a',
-          800: '#1e293b',
-          700: '#334155',
-          600: '#475569',
+          900: '#183D3D',
+          800: '#224F4F',
+          700: '#328477',
+          600: '#4A6666',
         },
         teal: {
-          600: '#0d9488',
-          500: '#14b8a6',
-          400: '#2dd4bf',
+          600: '#183D3D',
+          500: '#328477',
+          400: '#328477',
+          300: '#246359',
         },
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
-      },
-      animation: {
-        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-        'scan': 'scan 2s linear infinite',
-      },
-      keyframes: {
-        scan: {
-          '0%': { transform: 'translateY(-100%)' },
-          '100%': { transform: 'translateY(100vh)' },
-        },
+        sans: ['"Plus Jakarta Sans"', 'system-ui', '-apple-system', 'sans-serif'],
+        mono: ['"JetBrains Mono"', 'monospace'],
       },
     },
   },

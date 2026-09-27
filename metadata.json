@@ -1,5 +1,6 @@
 {
   "name": "CivicEye AI — Smart City Inspector",
   "description": "AI-powered civic issue detection and tracking platform that turns city transit buses into automated inspectors for potholes, garbage, waterlogging, and infrastructure defects.",
-  "requestFramePermissions": []
+  "requestFramePermissions": ["camera", "geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

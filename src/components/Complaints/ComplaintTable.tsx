@@ -8,7 +8,7 @@ import { MapPin, ExternalLink } from 'lucide-react'
 
 interface ComplaintTableProps {
   complaints: Complaint[]
-  onRowClick?: (id: number) => void
+  onRowClick?: (id: string | number) => void
 }
 
 export default function ComplaintTable({ complaints, onRowClick }: ComplaintTableProps) {
@@ -49,14 +49,22 @@ export default function ComplaintTable({ complaints, onRowClick }: ComplaintTabl
               ? `${complaint.latitude.toFixed(4)}, ${complaint.longitude.toFixed(4)}`
               : 'Pune'
 
+            const targetId = complaint.complaint_id || complaint.id
+
             return (
               <tr
                 key={complaint.id}
-                className="border-b border-slate-700/20 table-row-hover"
-                onClick={() => onRowClick?.(complaint.id)}
+                className="border-b border-slate-700/20 hover:bg-[#243D47]/60 transition-colors cursor-pointer"
+                onClick={() => onRowClick?.(targetId)}
               >
-                <td className="px-4 py-3 text-slate-400 font-mono text-xs">
-                  {complaint.complaint_id || `#${complaint.id}`}
+                <td className="px-4 py-3 text-[#00D1FF] font-mono text-xs font-semibold">
+                  <Link
+                    to={`/dashboard/complaints/${encodeURIComponent(String(targetId))}?from=all_complaints`}
+                    onClick={(e) => e.stopPropagation()}
+                    className="hover:underline"
+                  >
+                    {complaint.complaint_id || `#${complaint.id}`}
+                  </Link>
                 </td>
                 <td className="px-4 py-3">
                   <span className="flex items-center gap-2">
