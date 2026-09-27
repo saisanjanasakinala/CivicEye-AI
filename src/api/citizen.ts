@@ -69,7 +69,7 @@ export async function uploadCitizenMedia(file: File): Promise<UploadedMediaResul
   const form = new FormData()
   form.append('media', file)
   const { data } = await client.post('/citizen/upload-media', form, {
-    headers: { 'Content-Type': undefined as unknown as string },
+    headers: { 'Content-Type': 'multipart/form-data' },
   })
   return data
 }

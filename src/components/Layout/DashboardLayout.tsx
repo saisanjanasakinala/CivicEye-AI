@@ -31,7 +31,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const navigate = useNavigate()
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
-  const navItems = [
+  const allNavItems = [
     {
       label: 'Overview',
       to: '/dashboard',
@@ -76,8 +76,11 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       label: 'Settings',
       to: '/dashboard/settings',
       icon: <Settings size={17} />,
+      adminOnly: true,
     },
   ]
+
+  const navItems = allNavItems.filter((item) => !item.adminOnly || user?.role === 'admin')
 
   const currentNav =
     navItems.find((item) =>

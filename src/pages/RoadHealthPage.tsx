@@ -1,7 +1,11 @@
 import React, { useEffect, useState, useMemo } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { MapContainer, TileLayer, Polyline, CircleMarker, Popup, useMap } from 'react-leaflet'
+import { MapContainer, Polyline, CircleMarker, Popup, useMap } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
+import {
+  SafeTileLayer,
+  MapInvalidator,
+} from '../components/Map/InteractiveMap'
 import {
   Activity,
   AlertTriangle,
@@ -447,12 +451,11 @@ const RoadHealthPage: React.FC = () => {
                 <MapContainer
                   center={[18.5204, 73.8567]}
                   zoom={12}
+                  scrollWheelZoom={false}
                   style={{ height: '100%', width: '100%' }}
                 >
-                  <TileLayer
-                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                    url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-                  />
+                  <SafeTileLayer />
+                  <MapInvalidator trigger={selectedSegmentId} />
                   <MapFlyToSegment segment={selectedSegment} />
 
                   {data.segments.map((seg) => {

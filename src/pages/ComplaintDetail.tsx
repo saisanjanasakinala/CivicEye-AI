@@ -13,6 +13,7 @@ import {
   User,
   Image as ImageIcon,
   Shield,
+  ShieldAlert,
   Upload,
   Building2,
   Flag,
@@ -318,6 +319,11 @@ export default function ComplaintDetail() {
     if (!file) {
       setAfterPhotoFile(null)
       setAfterPhotoPreviewUrl(null)
+      if (id) {
+        try {
+          sessionStorage.removeItem(`civiceye_after_draft_${id}`)
+        } catch {}
+      }
       return
     }
     const allowedMime = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif', 'image/svg+xml']
@@ -333,21 +339,53 @@ export default function ComplaintDetail() {
       setAfterPhotoPreviewUrl(null)
       return
     }
-    if (file.size > 10 * 1024 * 1024) {
-      setAfterPhotoValidationError('Image file exceeds 10 MB limit. Please upload a smaller image.')
+    if (file.size > 15 * 1024 * 1024) {
+      setAfterPhotoValidationError('Image file exceeds 15 MB limit. Please upload a smaller image.')
       setAfterPhotoFile(null)
       setAfterPhotoPreviewUrl(null)
       return
     }
     setAfterPhotoFile(file)
     const reader = new FileReader()
-    reader.onload = () => setAfterPhotoPreviewUrl(String(reader.result))
+    reader.onload = () => {
+      const result = String(reader.result)
+      setAfterPhotoPreviewUrl(result)
+      if (id) {
+        try {
+          sessionStorage.setItem(
+            `civiceye_after_draft_${id}`,
+            JSON.stringify({ preview: result, notes: afterPhotoNotes, fileName: file.name })
+          )
+        } catch {}
+      }
+    }
     reader.readAsDataURL(file)
   }
+
+  // Restore draft after photo on load if present
+  useEffect(() => {
+    if (!id) return
+    try {
+      const saved = sessionStorage.getItem(`civiceye_after_draft_${id}`)
+      if (saved) {
+        const parsed = JSON.parse(saved)
+        if (parsed.preview && !complaint?.after_image_url && !complaint?.repair_verification?.after_image_url) {
+          setAfterPhotoPreviewUrl(parsed.preview)
+          if (parsed.notes && !afterPhotoNotes) {
+            setAfterPhotoNotes(parsed.notes)
+          }
+        }
+      }
+    } catch {}
+  }, [id, complaint?.after_image_url, complaint?.repair_verification?.after_image_url])
 
   const handleUploadVerificationAfter = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!complaint) return
+    if (!afterPhotoFile && !afterPhotoPreviewUrl) {
+      setAfterPhotoValidationError('Please select an AFTER repair photo before submitting.')
+      return
+    }
     setIsUploadingAfterPhoto(true)
     setError('')
     try {
@@ -361,6 +399,7 @@ export default function ComplaintDetail() {
         })
       }
       await uploadRepairVerificationAfterPhoto(complaint.complaint_id, {
+        file: afterPhotoFile || undefined,
         image_data: dataUrl,
         notes:
           afterPhotoNotes.trim() ||
@@ -369,13 +408,22 @@ export default function ComplaintDetail() {
         longitude: complaint.longitude,
         address: complaint.address || undefined,
       })
+      if (id) {
+        try {
+          sessionStorage.removeItem(`civiceye_after_draft_${id}`)
+        } catch {}
+      }
       setAfterPhotoFile(null)
       setAfterPhotoPreviewUrl(null)
       setAfterPhotoNotes('')
       await refreshComplaint()
       showToast('Uploaded AFTER repair photo. Status set to Pending Admin Verification.')
     } catch (err: any) {
-      setError(err?.response?.data?.detail || 'Failed to upload AFTER repair photo.')
+      setError(
+        err?.response?.data?.message ||
+          err?.response?.data?.detail ||
+          'Failed to upload AFTER repair photo.'
+      )
     } finally {
       setIsUploadingAfterPhoto(false)
     }
@@ -1037,11 +1085,21 @@ export default function ComplaintDetail() {
             {/* AFTER CARD */}
             <div className="bg-[#101C23] border border-[#2A4550] rounded-xl p-4 space-y-3">
               <div className="flex items-center justify-between">
-                <span className="px-2.5 py-0.5 rounded bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs font-bold uppercase">
-                  AFTER REPAIR (COMPLETION PROOF)
+                <span
+                  className={`px-2.5 py-0.5 rounded text-xs font-bold uppercase border ${
+                    afterPhotoPreviewUrl && !complaint.repair_verification?.after_image_url
+                      ? 'bg-sky-500/20 border-sky-500/40 text-sky-300'
+                      : 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300'
+                  }`}
+                >
+                  {afterPhotoPreviewUrl && !complaint.repair_verification?.after_image_url
+                    ? 'PREVIEW (UNSAVED AFTER PHOTO)'
+                    : 'AFTER REPAIR (COMPLETION PROOF)'}
                 </span>
                 <span className="text-[11px] text-[#AABDC2] font-mono">
-                  {complaint.repair_verification?.after_uploaded_at
+                  {afterPhotoPreviewUrl && !complaint.repair_verification?.after_image_url
+                    ? 'Ready to upload below'
+                    : complaint.repair_verification?.after_uploaded_at
                     ? safeFormat(
                         complaint.repair_verification.after_uploaded_at,
                         'dd MMM yyyy, HH:mm'
@@ -1051,9 +1109,12 @@ export default function ComplaintDetail() {
               </div>
 
               <div className="h-52 w-full rounded-lg overflow-hidden border border-[#2A4550] bg-[#0B1419] flex items-center justify-center">
-                {complaint.repair_verification?.after_image_url || complaint.after_image_url ? (
+                {afterPhotoPreviewUrl ||
+                complaint.repair_verification?.after_image_url ||
+                complaint.after_image_url ? (
                   <img
                     src={
+                      afterPhotoPreviewUrl ||
                       complaint.repair_verification?.after_image_url ||
                       complaint.after_image_url ||
                       undefined
@@ -1077,11 +1138,15 @@ export default function ComplaintDetail() {
                   <MapPin size={11} className="text-emerald-400" />
                   {complaint.address || 'Same GPS Location'}
                 </span>
-                {complaint.repair_verification?.after_uploaded_by_name && (
+                {afterPhotoPreviewUrl && !complaint.repair_verification?.after_image_url ? (
+                  <span className="text-sky-300 font-semibold">
+                    Selected Preview ({afterPhotoFile?.name || 'Local File'})
+                  </span>
+                ) : complaint.repair_verification?.after_uploaded_by_name ? (
                   <span className="text-emerald-300">
                     Uploaded by {complaint.repair_verification.after_uploaded_by_name}
                   </span>
-                )}
+                ) : null}
               </div>
             </div>
           </div>
@@ -1150,28 +1215,14 @@ export default function ComplaintDetail() {
                 <div className="flex flex-wrap items-center gap-2">
                   <button
                     type="submit"
-                    disabled={isUploadingAfterPhoto || isResolvingDirectly}
+                    disabled={isUploadingAfterPhoto}
                     className="flex-1 py-2 px-3 rounded-lg bg-[#0F766E] hover:bg-[#0D9488] text-white font-semibold transition-colors disabled:opacity-50"
                   >
                     {isUploadingAfterPhoto
                       ? 'Uploading AFTER Photo...'
                       : afterPhotoFile
-                      ? 'Upload AFTER Photo (Pending Review)'
+                      ? 'Upload AFTER Photo (Sets Status: Awaiting Verification)'
                       : 'Upload / Generate Demo AFTER Photo'}
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={handleDirectResolveWithEvidence}
-                    disabled={isResolvingDirectly || isUploadingAfterPhoto}
-                    className="py-2 px-3.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition-colors disabled:opacity-50 inline-flex items-center gap-1.5"
-                  >
-                    <CheckCircle2 size={13} />
-                    <span>
-                      {isResolvingDirectly
-                        ? 'Resolving...'
-                        : 'Save Evidence & Mark Resolved'}
-                    </span>
                   </button>
 
                   {(complaint.repair_verification?.after_image_url ||
@@ -1280,6 +1331,7 @@ export default function ComplaintDetail() {
                     type="checkbox"
                     checked={publicUpdateApproved}
                     onChange={(e) => setPublicUpdateApproved(e.target.checked)}
+                    disabled={!isAdmin}
                     className="rounded border-[#2A4550] bg-[#1C3038] text-[#0F766E]"
                   />
                   <span>
@@ -1287,37 +1339,46 @@ export default function ComplaintDetail() {
                   </span>
                 </label>
 
-                <div className="flex flex-wrap items-center gap-2.5">
-                  <button
-                    type="button"
-                    disabled={isSubmittingVerification}
-                    onClick={() => handleVerificationDecision('verified')}
-                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition-colors disabled:opacity-50"
-                  >
-                    <CheckCircle2 size={14} />
-                    <span>Mark Repair Verified</span>
-                  </button>
+                {isAdmin ? (
+                  <div className="flex flex-wrap items-center gap-2.5">
+                    <button
+                      type="button"
+                      disabled={isSubmittingVerification}
+                      onClick={() => handleVerificationDecision('verified')}
+                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition-colors disabled:opacity-50"
+                    >
+                      <CheckCircle2 size={14} />
+                      <span>Mark Repair Verified</span>
+                    </button>
 
-                  <button
-                    type="button"
-                    disabled={isSubmittingVerification}
-                    onClick={() => handleVerificationDecision('needs_reinspection')}
-                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-white font-bold transition-colors disabled:opacity-50"
-                  >
-                    <RotateCcw size={14} />
-                    <span>Needs Reinspection</span>
-                  </button>
+                    <button
+                      type="button"
+                      disabled={isSubmittingVerification}
+                      onClick={() => handleVerificationDecision('needs_reinspection')}
+                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-white font-bold transition-colors disabled:opacity-50"
+                    >
+                      <RotateCcw size={14} />
+                      <span>Needs Reinspection</span>
+                    </button>
 
-                  <button
-                    type="button"
-                    disabled={isSubmittingVerification}
-                    onClick={() => handleVerificationDecision('rejected')}
-                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-red-600 hover:bg-red-500 text-white font-bold transition-colors disabled:opacity-50"
-                  >
-                    <XCircle size={14} />
-                    <span>Reject Repair</span>
-                  </button>
-                </div>
+                    <button
+                      type="button"
+                      disabled={isSubmittingVerification}
+                      onClick={() => handleVerificationDecision('rejected')}
+                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-red-600 hover:bg-red-500 text-white font-bold transition-colors disabled:opacity-50"
+                    >
+                      <XCircle size={14} />
+                      <span>Reject Repair</span>
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 text-xs text-[#AABDC2] bg-[#1C3038] px-3 py-1.5 rounded-lg border border-[#2A4550]">
+                    <ShieldAlert size={14} className="text-[#91C8BD]" />
+                    <span>
+                      Official verification requires Municipal Administrator approval. Upload field completion evidence in Step 1.
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -1348,7 +1409,7 @@ export default function ComplaintDetail() {
                 >
                   {isSimulatingBusPass
                     ? 'Simulating Bus Pass...'
-                    : 'Simulate Bus Reinspection Pass (Demo)'}
+                    : 'Simulate Bus Reinspection Pass [DEMO]'}
                 </button>
               )}
             </div>
@@ -1373,8 +1434,8 @@ export default function ComplaintDetail() {
                           Confidence: {(det.confidence * 100).toFixed(0)}%
                         </span>
                         {det.is_simulated && (
-                          <span className="px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 text-[10px] font-semibold">
-                            SIMULATED DEMO PASS
+                          <span className="px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 text-[10px] font-bold">
+                            [DEMO SIMULATED REINSPECTION]
                           </span>
                         )}
                       </div>
@@ -1705,28 +1766,44 @@ export default function ComplaintDetail() {
               Inspection & Resolution Evidence
             </h2>
 
-            {complaint.before_image_url || complaint.after_image_url || complaint.image_url ? (
+            {complaint.before_image_url ||
+            complaint.repair_verification?.before_image_url ||
+            complaint.image_url ||
+            complaint.after_image_url ||
+            complaint.repair_verification?.after_image_url ? (
               <div className="space-y-3">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {(complaint.before_image_url || complaint.image_url) && (
+                  {(complaint.before_image_url ||
+                    complaint.repair_verification?.before_image_url ||
+                    complaint.image_url) && (
                     <div>
                       <p className="text-[#AABDC2] text-xs mb-1 font-medium">
                         Before / Initial Detection
                       </p>
                       <img
-                        src={complaint.before_image_url || complaint.image_url || undefined}
+                        src={
+                          complaint.before_image_url ||
+                          complaint.repair_verification?.before_image_url ||
+                          complaint.image_url ||
+                          undefined
+                        }
                         alt="Before"
                         className="w-full h-40 object-cover rounded-xl border border-[#2A4550]"
                       />
                     </div>
                   )}
-                  {complaint.after_image_url && (
+                  {(complaint.after_image_url ||
+                    complaint.repair_verification?.after_image_url) && (
                     <div>
                       <p className="text-emerald-400 text-xs mb-1 font-medium">
                         After / Resolution Proof
                       </p>
                       <img
-                        src={complaint.after_image_url}
+                        src={
+                          complaint.after_image_url ||
+                          complaint.repair_verification?.after_image_url ||
+                          undefined
+                        }
                         alt="After"
                         className="w-full h-40 object-cover rounded-xl border border-emerald-500/40"
                       />

@@ -67,6 +67,8 @@ const ISSUE_CATEGORIES = [
   { id: 'Other Civic Hazard', label: 'Other Hazard', dept: 'Roads & Infrastructure' },
 ]
 
+const CITIZEN_PORTAL_CATEGORIES = ISSUE_CATEGORIES.map((c) => c.id)
+
 const ALLOWED_IMAGE_MIME_TYPES = new Set([
   'image/jpeg',
   'image/jpg',
@@ -207,6 +209,60 @@ export default function CitizenHome() {
   const [isTracking, setIsTracking] = useState<boolean>(false)
   const [trackError, setTrackError] = useState<string | null>(null)
   const [trackedComplaint, setTrackedComplaint] = useState<Complaint | null>(null)
+
+  // Restore draft report on mount if user refreshed page with photo or data
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem('civiceye_citizen_report_draft')
+      if (raw) {
+        const draft = JSON.parse(raw)
+        if (draft.description) setDescription(draft.description)
+        if (draft.category && CITIZEN_PORTAL_CATEGORIES.includes(draft.category)) setCategory(draft.category)
+        if (draft.severity) setSeverity(draft.severity)
+        if (draft.address) setAddress(draft.address)
+        if (typeof draft.latitude === 'number' && typeof draft.longitude === 'number') {
+          setLatitude(draft.latitude)
+          setLongitude(draft.longitude)
+          setManualLatInput(draft.latitude.toFixed(5))
+          setManualLngInput(draft.longitude.toFixed(5))
+        }
+        if (draft.uploadedMediaUrl) {
+          setUploadedMediaUrl(draft.uploadedMediaUrl)
+          setMediaPreview(draft.uploadedMediaUrl)
+        } else if (draft.mediaDataUrl) {
+          setMediaDataUrl(draft.mediaDataUrl)
+          setMediaPreview(draft.mediaDataUrl)
+        }
+      }
+    } catch {
+      // ignore storage error
+    }
+  }, [])
+
+  // Keep draft synchronized in sessionStorage
+  const saveDraftToStorage = useCallback(
+    (updates: {
+      mediaDataUrl?: string | null
+      uploadedMediaUrl?: string | null
+      category?: string
+      description?: string
+      severity?: ComplaintSeverity
+      address?: string
+      latitude?: number
+      longitude?: number
+      fileName?: string | null
+    }) => {
+      try {
+        const raw = sessionStorage.getItem('civiceye_citizen_report_draft')
+        const prev = raw ? JSON.parse(raw) : {}
+        const merged = { ...prev, ...updates }
+        sessionStorage.setItem('civiceye_citizen_report_draft', JSON.stringify(merged))
+      } catch {
+        // ignore
+      }
+    },
+    []
+  )
 
   const recordSavedComplaintId = useCallback((cid: string) => {
     setSavedComplaintIds((prev) => {
@@ -392,9 +448,11 @@ export default function CitizenHome() {
     setManualLngInput(lng.toFixed(5))
     setLocationSource('manual_pin')
     setDuplicateWarnings([])
+    setFlyTarget({ lat, lng, zoom: STREET_LEVEL_ZOOM, seq: Date.now() })
+    saveDraftToStorage({ latitude: lat, longitude: lng })
     setGpsNotice({
       type: 'info',
-      text: `Pin placed at ${lat.toFixed(5)}, ${lng.toFixed(5)}. Drag the pin or click the map to adjust.`,
+      text: `Pin placed at ${lat.toFixed(5)}, ${lng.toFixed(5)}. Map centered and zoomed. Drag the pin or click the map to adjust.`,
     })
   }
 
@@ -520,6 +578,7 @@ export default function CitizenHome() {
       try {
         localDataUrl = await readFileAsDataUrl(file)
         setMediaDataUrl(localDataUrl)
+        saveDraftToStorage({ mediaDataUrl: localDataUrl, fileName: file.name })
       } catch {
         setMediaDataUrl(null)
       }
@@ -536,6 +595,7 @@ export default function CitizenHome() {
       serverMediaUrl = uploaded.url
       serverMediaType = uploaded.media_type
       setUploadedMediaUrl(uploaded.url)
+      saveDraftToStorage({ uploadedMediaUrl: uploaded.url, fileName: file.name })
     } catch (uploadErr: any) {
       const msg = uploadErr?.response?.data?.message
       if (msg) {
@@ -601,6 +661,9 @@ export default function CitizenHome() {
     setUploadedMediaUrl(null)
     setMediaError(null)
     if (fileInputRef.current) fileInputRef.current.value = ''
+    try {
+      sessionStorage.removeItem('civiceye_citizen_report_draft')
+    } catch {}
   }
 
   // Finalize creating a separate complaint record
@@ -636,6 +699,9 @@ export default function CitizenHome() {
         honeypot,
         force_new: true,
       })
+      try {
+        sessionStorage.removeItem('civiceye_citizen_report_draft')
+      } catch {}
       setDuplicateWarnings([])
       setSubmittedComplaint(created)
       setTrackCode(created.complaint_id)
@@ -1312,7 +1378,7 @@ export default function CitizenHome() {
                     </div>
                   )}
 
-                  {!mediaPreview ? (
+                  {!(mediaPreview || mediaDataUrl || uploadedMediaUrl) ? (
                     <button
                       type="button"
                       onClick={() => {
@@ -1381,14 +1447,14 @@ export default function CitizenHome() {
                       {mediaFile?.type.startsWith('video/') ? (
                         <video
                           data-testid="media-preview-video"
-                          src={mediaPreview}
+                          src={mediaPreview || uploadedMediaUrl || undefined}
                           controls
                           className="w-full max-h-56 rounded-lg border border-[#2A444E] bg-black"
                         />
                       ) : (
                         <img
                           data-testid="media-preview-image"
-                          src={mediaPreview}
+                          src={mediaPreview || uploadedMediaUrl || mediaDataUrl || undefined}
                           alt="Selected civic issue preview"
                           onError={(e) => {
                             const imgEl = e.currentTarget

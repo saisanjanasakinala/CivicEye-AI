@@ -3566,30 +3566,84 @@ function setupApiRoutes(app: express.Express) {
     if (
       clean === 'pothole' ||
       clean === 'potholes' ||
-      ((clean === 'road damage' || clean === 'broken road' || clean === 'other civic hazard') &&
-        (ctx.includes('pothole') || ctx.includes('pot hole') || ctx.includes('crater') || ctx.includes('road pit')))
+      ctx.includes('pothole') ||
+      ctx.includes('pot hole') ||
+      ctx.includes('road crater') ||
+      ctx.includes('crater') ||
+      ctx.includes('road pit') ||
+      ctx.includes('cavity in road') ||
+      ctx.includes('asphalt hole') ||
+      ctx.includes('crater on road')
     ) {
       return 'Pothole'
     }
-    if (clean.includes('garbage') || clean.includes('waste') || clean.includes('dump') || clean.includes('trash')) {
+    if (
+      clean === 'garbage' ||
+      clean.includes('garbage') ||
+      clean.includes('waste') ||
+      clean.includes('dump') ||
+      clean.includes('trash') ||
+      clean.includes('litter') ||
+      ctx.includes('garbage') ||
+      ctx.includes('waste pile')
+    ) {
       return 'Garbage'
     }
-    if (clean.includes('waterlog') || clean.includes('flood')) {
+    if (
+      clean === 'waterlogging' ||
+      clean.includes('waterlog') ||
+      clean.includes('flood') ||
+      ctx.includes('waterlogging') ||
+      ctx.includes('standing water')
+    ) {
       return 'Waterlogging'
     }
-    if (clean.includes('streetlight') || clean.includes('street light') || clean.includes('lamp')) {
+    if (
+      clean === 'broken streetlight' ||
+      clean.includes('streetlight') ||
+      clean.includes('street light') ||
+      clean.includes('lamp') ||
+      ctx.includes('streetlight') ||
+      ctx.includes('street light')
+    ) {
       return 'Broken Streetlight'
     }
-    if (clean.includes('tree') || clean.includes('branch')) {
+    if (
+      clean === 'fallen tree' ||
+      clean.includes('tree') ||
+      clean.includes('branch') ||
+      ctx.includes('fallen tree') ||
+      ctx.includes('tree branch')
+    ) {
       return 'Fallen Tree'
     }
-    if (clean.includes('obstruction') || clean.includes('blockage')) {
-      return 'Road Obstruction'
-    }
-    if (clean.includes('drain') || clean.includes('manhole') || clean.includes('sewer')) {
+    if (
+      clean === 'open drain' ||
+      clean.includes('drain') ||
+      clean.includes('manhole') ||
+      clean.includes('sewer') ||
+      ctx.includes('open drain') ||
+      ctx.includes('missing manhole')
+    ) {
       return 'Open Drain'
     }
-    if (clean.includes('road damage') || clean.includes('broken road') || clean.includes('crack')) {
+    if (
+      clean === 'road obstruction' ||
+      clean.includes('obstruction') ||
+      clean.includes('blockage') ||
+      ctx.includes('road obstruction') ||
+      ctx.includes('blocking traffic')
+    ) {
+      return 'Road Obstruction'
+    }
+    if (
+      clean === 'road damage' ||
+      clean.includes('road damage') ||
+      clean.includes('broken road') ||
+      clean.includes('crack') ||
+      ctx.includes('road damage') ||
+      ctx.includes('broken road')
+    ) {
       return 'Road Damage'
     }
 
@@ -3693,8 +3747,9 @@ Return JSON with:
           properties: {
             category: {
               type: Type.STRING,
+              enum: CITIZEN_PORTAL_CATEGORIES,
               description:
-                'One of: Pothole, Garbage, Waterlogging, Broken Streetlight, Fallen Tree, Road Obstruction, Road Damage, Open Drain, Other Civic Hazard',
+                'Must be one of: Pothole, Garbage, Waterlogging, Broken Streetlight, Fallen Tree, Road Obstruction, Road Damage, Open Drain, Other Civic Hazard',
             },
             confidence: {
               type: Type.NUMBER,
@@ -3702,6 +3757,7 @@ Return JSON with:
             },
             severity: {
               type: Type.STRING,
+              enum: ['low', 'medium', 'high', 'critical'],
               description: 'One of: low, medium, high, critical',
             },
             suggested_description: {
@@ -3739,7 +3795,19 @@ Return JSON with:
       }
 
       const rawText = (response.text || '').trim().replace(/^```json\s*/i, '').replace(/```\s*$/, '').trim()
-      const rawJson = rawText ? JSON.parse(rawText) : null
+      let rawJson: any = null
+      try {
+        rawJson = JSON.parse(rawText)
+      } catch {
+        const match = rawText.match(/\{[\s\S]*\}/)
+        if (match) {
+          try {
+            rawJson = JSON.parse(match[0])
+          } catch {
+            rawJson = null
+          }
+        }
+      }
 
       if (!rawJson || !rawJson.category) {
         return res.status(502).json({
@@ -4293,6 +4361,7 @@ Return JSON with:
 
       if (imageType === 'resolution') {
         complaint.resolution_evidence_path = imagePath
+        ;(complaint as any).after_image_url = imagePath
         verification.after_image_url = imagePath
         verification.after_uploaded_at = now
         verification.after_uploaded_by_name = actor?.full_name || 'Municipal Commissioner (Admin)'
@@ -4579,6 +4648,7 @@ Return JSON with:
 
       const verification = ensureRepairVerificationRecord(complaint)
       complaint.resolution_evidence_path = afterPath
+      ;(complaint as any).after_image_url = afterPath
       verification.after_image_url = afterPath
       verification.after_uploaded_at = now
       verification.after_uploaded_by_name = actor?.full_name || 'Municipal Commissioner (Admin)'
@@ -4647,6 +4717,13 @@ Return JSON with:
 
   router.post('/complaints/:id/verification/decision', requireStaff, (req, res) => {
     const actor = (req as any).user as User
+    if (actor.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Forbidden: Only an authorized administrator may verify, request reinspection or reject repair.',
+        detail: 'Forbidden: Only an authorized administrator may verify, request reinspection or reject repair.',
+      })
+    }
     const idParam = req.params.id
     const complaint = complaints.find(
       (c) => String(c.id) === idParam || c.complaint_id.toLowerCase() === idParam.toLowerCase()
@@ -4766,6 +4843,15 @@ Return JSON with:
       )
       if (!complaint) {
         return res.status(404).json({ success: false, message: 'Complaint not found' })
+      }
+      if (actor.role !== 'admin') {
+        return res.status(403).json({
+          success: false,
+          message:
+            'Forbidden: Only an authorized administrator may officially verify and resolve a complaint. Field staff should upload AFTER repair evidence for admin verification.',
+          detail:
+            'Forbidden: Only an authorized administrator may officially verify and resolve a complaint.',
+        })
       }
       if (!canUserAccessComplaint(actor, complaint)) {
         return res.status(403).json({
@@ -5914,11 +6000,6 @@ async function startServer() {
   // API Routes
   setupApiRoutes(app)
 
-  // Bind port 3000 immediately so health probes succeed right away
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log(`[CivicEye AI] Server listening on http://0.0.0.0:${PORT}`)
-  })
-
   if (process.env.NODE_ENV === 'production' && fs.existsSync(path.resolve('dist'))) {
     app.use(express.static(path.resolve('dist')))
     app.get('*', (_req, res) => {
@@ -5931,6 +6012,10 @@ async function startServer() {
     })
     app.use(vite.middlewares)
   }
+
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`[CivicEye AI] Server listening on http://0.0.0.0:${PORT}`)
+  })
 }
 
 startServer().catch((err) => {

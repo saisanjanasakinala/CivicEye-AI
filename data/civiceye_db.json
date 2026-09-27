@@ -721,14 +721,14 @@
       "bus_id": 1,
       "source": "bus_camera",
       "severity": "critical",
-      "status": "awaiting_verification",
+      "status": "resolved",
       "department_id": 1,
       "department_name": "Roads & Infrastructure",
       "observation_count": 2,
       "first_detected_at": "2026-09-25T13:59:27.334Z",
       "last_detected_at": "2026-09-27T10:25:00.682Z",
-      "resolved_at": null,
-      "resolution_notes": "Pothole on Swargate-Bibwewadi road has been patched and verified complete.",
+      "resolved_at": "2026-09-27T12:35:18.492Z",
+      "resolution_notes": "Officer test verification",
       "evidence_image_path": null,
       "resolution_evidence_path": "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22640%22%20height%3D%22380%22%20viewBox%3D%220%200%20640%20380%22%3E%0A%20%20%20%20%3Crect%20width%3D%22640%22%20height%3D%22380%22%20fill%3D%22%230D181E%22%2F%3E%0A%20%20%20%20%3Crect%20x%3D%2216%22%20y%3D%2216%22%20width%3D%22608%22%20height%3D%22348%22%20rx%3D%2214%22%20fill%3D%22%2315262E%22%20stroke%3D%22%2310B981%22%20stroke-width%3D%222.5%22%2F%3E%0A%20%20%20%20%3Crect%20x%3D%2232%22%20y%3D%2232%22%20width%3D%22275%22%20height%3D%2228%22%20rx%3D%226%22%20fill%3D%22%2310B981%22%20fill-opacity%3D%220.2%22%2F%3E%0A%20%20%20%20%3Ctext%20x%3D%2244%22%20y%3D%2251%22%20fill%3D%22%236EE7B7%22%20font-family%3D%22monospace%22%20font-size%3D%2213%22%20font-weight%3D%22bold%22%3EAFTER%20REPAIR%20%C2%B7%20FIELD%20COMPLETION%20PHOTO%3C%2Ftext%3E%0A%20%20%20%20%3Ctext%20x%3D%2232%22%20y%3D%2292%22%20fill%3D%22%23F4F7F7%22%20font-family%3D%22sans-serif%22%20font-size%3D%2220%22%20font-weight%3D%22bold%22%3EPothole%20%E2%80%94%20Post-Repair%20Surface%3C%2Ftext%3E%0A%20%20%20%20%3Ctext%20x%3D%2232%22%20y%3D%22120%22%20fill%3D%22%2391C8BD%22%20font-family%3D%22monospace%22%20font-size%3D%2214%22%3EID%3A%20CE-202609-0001%20%C2%B7%20Dept%3A%20Roads%20%26%20Infrastructure%3C%2Ftext%3E%0A%20%20%20%20%3Crect%20x%3D%2232%22%20y%3D%22140%22%20width%3D%22576%22%20height%3D%22120%22%20rx%3D%2210%22%20fill%3D%22%23101C23%22%20stroke%3D%22%23367F77%22%20stroke-width%3D%221.5%22%2F%3E%0A%20%20%20%20%3Crect%20x%3D%22135%22%20y%3D%22172%22%20width%3D%22170%22%20height%3D%2262%22%20rx%3D%228%22%20fill%3D%22%231E3A3A%22%20stroke%3D%22%2334D399%22%20stroke-width%3D%222%22%2F%3E%0A%20%20%20%20%3Ctext%20x%3D%22152%22%20y%3D%22207%22%20fill%3D%22%236EE7B7%22%20font-family%3D%22monospace%22%20font-size%3D%2212%22%20font-weight%3D%22bold%22%3ERESTORED%20SURFACE%3C%2Ftext%3E%0A%20%20%20%20%3Ctext%20x%3D%22325%22%20y%3D%22188%22%20fill%3D%22%236EE7B7%22%20font-family%3D%22monospace%22%20font-size%3D%2213%22%20font-weight%3D%22bold%22%3E%5BPOST-REPAIR%20INSPECTION%5D%3C%2Ftext%3E%0A%20%20%20%20%3Ctext%20x%3D%22325%22%20y%3D%22212%22%20fill%3D%22%23F4F7F7%22%20font-family%3D%22sans-serif%22%20font-size%3D%2212%22%3EHot-mix%20asphalt%20patch%20completed%20and%20compac%3C%2Ftext%3E%0A%20%20%20%20%3Ctext%20x%3D%2232%22%20y%3D%22295%22%20fill%3D%22%23F4F7F7%22%20font-family%3D%22monospace%22%20font-size%3D%2213%22%3EGPS%3A%2018.49830%C2%B0N%2C%2073.85400%C2%B0E%3C%2Ftext%3E%0A%20%20%20%20%3Ctext%20x%3D%2232%22%20y%3D%22320%22%20fill%3D%22%23AABDC2%22%20font-family%3D%22monospace%22%20font-size%3D%2212%22%3EUploaded%3A%202026-09-27T10%3A25%3A00.623Z%3C%2Ftext%3E%0A%20%20%20%20%3Ctext%20x%3D%2232%22%20y%3D%22345%22%20fill%3D%22%23FBBF24%22%20font-family%3D%22monospace%22%20font-size%3D%2211%22%3E%5BDEMO%20FIELD%20CERTIFICATE%20%E2%80%94%20MANUAL%20ADMIN%20VERIFICATION%20REQUIRED%5D%3C%2Ftext%3E%0A%20%20%3C%2Fsvg%3E",
       "is_anonymous": false,
@@ -778,12 +778,21 @@
           "changed_by_name": "Bus PMC-11 Reinspection Scanner",
           "changed_at": "2026-09-27T10:25:00.682Z",
           "notes": "Linked potential reinspection evidence (#13, 0m away). Flagged as Needs Reinspection."
+        },
+        {
+          "id": 1790512518493,
+          "old_status": "awaiting_verification",
+          "new_status": "resolved",
+          "changed_by": 2,
+          "changed_by_name": "Officer Ramesh (Roads)",
+          "changed_at": "2026-09-27T12:35:18.492Z",
+          "notes": "Repair Verification Decision [VERIFIED]: Officer test verification"
         }
       ],
       "assignments": [],
       "evidence": [],
       "repair_verification": {
-        "verification_status": "needs_reinspection",
+        "verification_status": "verified",
         "before_image_url": "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22640%22%20height%3D%22380%22%20viewBox%3D%220%200%20640%20380%22%3E%0A%20%20%20%20%3Crect%20width%3D%22640%22%20height%3D%22380%22%20fill%3D%22%230D181E%22%2F%3E%0A%20%20%20%20%3Crect%20x%3D%2216%22%20y%3D%2216%22%20width%3D%22608%22%20height%3D%22348%22%20rx%3D%2214%22%20fill%3D%22%2315262E%22%20stroke%3D%22%23EF4444%22%20stroke-width%3D%222.5%22%2F%3E%0A%20%20%20%20%3Crect%20x%3D%2232%22%20y%3D%2232%22%20width%3D%22250%22%20height%3D%2228%22%20rx%3D%226%22%20fill%3D%22%23EF4444%22%20fill-opacity%3D%220.2%22%2F%3E%0A%20%20%20%20%3Ctext%20x%3D%2244%22%20y%3D%2251%22%20fill%3D%22%23FCA5A5%22%20font-family%3D%22monospace%22%20font-size%3D%2213%22%20font-weight%3D%22bold%22%3EBEFORE%20REPAIR%20%C2%B7%20INITIAL%20DETECTION%3C%2Ftext%3E%0A%20%20%20%20%3Ctext%20x%3D%2232%22%20y%3D%2292%22%20fill%3D%22%23F4F7F7%22%20font-family%3D%22sans-serif%22%20font-size%3D%2220%22%20font-weight%3D%22bold%22%3EPothole%20(HIGH)%3C%2Ftext%3E%0A%20%20%20%20%3Ctext%20x%3D%2232%22%20y%3D%22120%22%20fill%3D%22%2391C8BD%22%20font-family%3D%22monospace%22%20font-size%3D%2214%22%3EID%3A%20CE-202609-0001%20%C2%B7%20Source%3A%20Bus%20%231%20AI%20Camera%3C%2Ftext%3E%0A%20%20%20%20%3Crect%20x%3D%2232%22%20y%3D%22140%22%20width%3D%22576%22%20height%3D%22120%22%20rx%3D%2210%22%20fill%3D%22%23101C23%22%20stroke%3D%22%232A444E%22%20stroke-width%3D%221.5%22%2F%3E%0A%20%20%20%20%3Cellipse%20cx%3D%22220%22%20cy%3D%22205%22%20rx%3D%2278%22%20ry%3D%2234%22%20fill%3D%22%23090F13%22%20stroke%3D%22%23F87171%22%20stroke-width%3D%222%22%20stroke-dasharray%3D%226%2C4%22%2F%3E%0A%20%20%20%20%3Ctext%20x%3D%22325%22%20y%3D%22188%22%20fill%3D%22%23F87171%22%20font-family%3D%22monospace%22%20font-size%3D%2213%22%20font-weight%3D%22bold%22%3E%5BDEFECT%20BOUNDING%20REGION%5D%3C%2Ftext%3E%0A%20%20%20%20%3Ctext%20x%3D%22325%22%20y%3D%22212%22%20fill%3D%22%23AABDC2%22%20font-family%3D%22sans-serif%22%20font-size%3D%2212%22%3EUnrepaired%20pothole%20defect%3C%2Ftext%3E%0A%20%20%20%20%3Ctext%20x%3D%22325%22%20y%3D%22232%22%20fill%3D%22%23AABDC2%22%20font-family%3D%22monospace%22%20font-size%3D%2211%22%3ESightings%3A%201%3C%2Ftext%3E%0A%20%20%20%20%3Ctext%20x%3D%2232%22%20y%3D%22295%22%20fill%3D%22%23F4F7F7%22%20font-family%3D%22monospace%22%20font-size%3D%2213%22%3EGPS%3A%2018.49830%C2%B0N%2C%2073.85400%C2%B0E%3C%2Ftext%3E%0A%20%20%20%20%3Ctext%20x%3D%2232%22%20y%3D%22320%22%20fill%3D%22%23AABDC2%22%20font-family%3D%22monospace%22%20font-size%3D%2212%22%3ECaptured%3A%202026-09-25T13%3A59%3A27.334Z%3C%2Ftext%3E%0A%20%20%20%20%3Ctext%20x%3D%2232%22%20y%3D%22345%22%20fill%3D%22%23FBBF24%22%20font-family%3D%22monospace%22%20font-size%3D%2211%22%3E%5BDEMO%20%2F%20SYNTHETIC%20SNAPSHOT%20%E2%80%94%20UPLOAD%20REAL%20FIELD%20PHOTO%20TO%20REPLACE%5D%3C%2Ftext%3E%0A%20%20%3C%2Fsvg%3E",
         "before_captured_at": "2026-09-25T13:59:27.334Z",
         "before_latitude": 18.4983,
@@ -797,13 +806,13 @@
         "after_longitude": 73.854,
         "after_notes": "Hot-mix asphalt patch completed and compacted",
         "after_is_simulated": true,
-        "decision_by_id": 1,
-        "decision_by_name": "Municipal Commissioner (Admin)",
-        "decision_by_role": "admin",
-        "decision_at": "2026-09-27T10:25:00.656Z",
-        "decision_notes": "Admin verified side-by-side before and after repair photos.",
-        "public_approved": false,
-        "public_summary": "Pothole on Swargate-Bibwewadi road has been patched and verified complete.",
+        "decision_by_id": 2,
+        "decision_by_name": "Officer Ramesh (Roads)",
+        "decision_by_role": "officer",
+        "decision_at": "2026-09-27T12:35:18.492Z",
+        "decision_notes": "Officer test verification",
+        "public_approved": true,
+        "public_summary": "Officer test verification",
         "vision_comparison": {
           "mode": "manual_demo",
           "analyzed_at": "2026-09-27T10:25:00.642Z",
@@ -859,6 +868,16 @@
           }
         ],
         "history": [
+          {
+            "id": 1790512518492,
+            "action": "DECISION_VERIFIED",
+            "status": "verified",
+            "actor_name": "Officer Ramesh (Roads)",
+            "actor_role": "officer",
+            "notes": "Officer test verification",
+            "timestamp": "2026-09-27T12:35:18.492Z",
+            "after_image_url": "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22640%22%20height%3D%22380%22%20viewBox%3D%220%200%20640%20380%22%3E%0A%20%20%20%20%3Crect%20width%3D%22640%22%20height%3D%22380%22%20fill%3D%22%230D181E%22%2F%3E%0A%20%20%20%20%3Crect%20x%3D%2216%22%20y%3D%2216%22%20width%3D%22608%22%20height%3D%22348%22%20rx%3D%2214%22%20fill%3D%22%2315262E%22%20stroke%3D%22%2310B981%22%20stroke-width%3D%222.5%22%2F%3E%0A%20%20%20%20%3Crect%20x%3D%2232%22%20y%3D%2232%22%20width%3D%22275%22%20height%3D%2228%22%20rx%3D%226%22%20fill%3D%22%2310B981%22%20fill-opacity%3D%220.2%22%2F%3E%0A%20%20%20%20%3Ctext%20x%3D%2244%22%20y%3D%2251%22%20fill%3D%22%236EE7B7%22%20font-family%3D%22monospace%22%20font-size%3D%2213%22%20font-weight%3D%22bold%22%3EAFTER%20REPAIR%20%C2%B7%20FIELD%20COMPLETION%20PHOTO%3C%2Ftext%3E%0A%20%20%20%20%3Ctext%20x%3D%2232%22%20y%3D%2292%22%20fill%3D%22%23F4F7F7%22%20font-family%3D%22sans-serif%22%20font-size%3D%2220%22%20font-weight%3D%22bold%22%3EPothole%20%E2%80%94%20Post-Repair%20Surface%3C%2Ftext%3E%0A%20%20%20%20%3Ctext%20x%3D%2232%22%20y%3D%22120%22%20fill%3D%22%2391C8BD%22%20font-family%3D%22monospace%22%20font-size%3D%2214%22%3EID%3A%20CE-202609-0001%20%C2%B7%20Dept%3A%20Roads%20%26%20Infrastructure%3C%2Ftext%3E%0A%20%20%20%20%3Crect%20x%3D%2232%22%20y%3D%22140%22%20width%3D%22576%22%20height%3D%22120%22%20rx%3D%2210%22%20fill%3D%22%23101C23%22%20stroke%3D%22%23367F77%22%20stroke-width%3D%221.5%22%2F%3E%0A%20%20%20%20%3Crect%20x%3D%22135%22%20y%3D%22172%22%20width%3D%22170%22%20height%3D%2262%22%20rx%3D%228%22%20fill%3D%22%231E3A3A%22%20stroke%3D%22%2334D399%22%20stroke-width%3D%222%22%2F%3E%0A%20%20%20%20%3Ctext%20x%3D%22152%22%20y%3D%22207%22%20fill%3D%22%236EE7B7%22%20font-family%3D%22monospace%22%20font-size%3D%2212%22%20font-weight%3D%22bold%22%3ERESTORED%20SURFACE%3C%2Ftext%3E%0A%20%20%20%20%3Ctext%20x%3D%22325%22%20y%3D%22188%22%20fill%3D%22%236EE7B7%22%20font-family%3D%22monospace%22%20font-size%3D%2213%22%20font-weight%3D%22bold%22%3E%5BPOST-REPAIR%20INSPECTION%5D%3C%2Ftext%3E%0A%20%20%20%20%3Ctext%20x%3D%22325%22%20y%3D%22212%22%20fill%3D%22%23F4F7F7%22%20font-family%3D%22sans-serif%22%20font-size%3D%2212%22%3EHot-mix%20asphalt%20patch%20completed%20and%20compac%3C%2Ftext%3E%0A%20%20%20%20%3Ctext%20x%3D%2232%22%20y%3D%22295%22%20fill%3D%22%23F4F7F7%22%20font-family%3D%22monospace%22%20font-size%3D%2213%22%3EGPS%3A%2018.49830%C2%B0N%2C%2073.85400%C2%B0E%3C%2Ftext%3E%0A%20%20%20%20%3Ctext%20x%3D%2232%22%20y%3D%22320%22%20fill%3D%22%23AABDC2%22%20font-family%3D%22monospace%22%20font-size%3D%2212%22%3EUploaded%3A%202026-09-27T10%3A25%3A00.623Z%3C%2Ftext%3E%0A%20%20%20%20%3Ctext%20x%3D%2232%22%20y%3D%22345%22%20fill%3D%22%23FBBF24%22%20font-family%3D%22monospace%22%20font-size%3D%2211%22%3E%5BDEMO%20FIELD%20CERTIFICATE%20%E2%80%94%20MANUAL%20ADMIN%20VERIFICATION%20REQUIRED%5D%3C%2Ftext%3E%0A%20%20%3C%2Fsvg%3E"
+          },
           {
             "id": 1790504700687,
             "action": "BUS_REINSPECTION_LINKED",
@@ -3081,6 +3100,76 @@
   ],
   "auditLogs": [
     {
+      "id": 1790512535982,
+      "action": "USER_LOGOUT",
+      "entity_type": "system",
+      "entity_id": "officer1",
+      "actor_name": "Officer Ramesh (Roads)",
+      "actor_role": "officer",
+      "details": "Officer Ramesh (Roads) signed out and invalidated session token",
+      "timestamp": "2026-09-27T12:35:35.566Z"
+    },
+    {
+      "id": 1790512535952,
+      "action": "USER_LOGIN",
+      "entity_type": "system",
+      "entity_id": "officer1",
+      "actor_name": "Officer Ramesh (Roads)",
+      "actor_role": "officer",
+      "details": "Officer Ramesh (Roads) (Roads & Infrastructure) signed in",
+      "timestamp": "2026-09-27T12:35:35.475Z"
+    },
+    {
+      "id": 1790512536065,
+      "action": "USER_LOGIN",
+      "entity_type": "system",
+      "entity_id": "admin",
+      "actor_name": "Municipal Commissioner (Admin)",
+      "actor_role": "admin",
+      "details": "Municipal Commissioner (Admin) (All Departments) signed in",
+      "timestamp": "2026-09-27T12:35:35.401Z"
+    },
+    {
+      "id": 1790512519237,
+      "action": "USER_LOGOUT",
+      "entity_type": "system",
+      "entity_id": "officer1",
+      "actor_name": "Officer Ramesh (Roads)",
+      "actor_role": "officer",
+      "details": "Officer Ramesh (Roads) signed out and invalidated session token",
+      "timestamp": "2026-09-27T12:35:18.564Z"
+    },
+    {
+      "id": 1790512518748,
+      "action": "REPAIR_VERIFICATION_VERIFIED",
+      "entity_type": "complaint",
+      "entity_id": "CE-202609-0001",
+      "actor_name": "Officer Ramesh (Roads)",
+      "actor_role": "officer",
+      "details": "Marked repair verification for CE-202609-0001 as verified: Officer test verification",
+      "timestamp": "2026-09-27T12:35:18.492Z"
+    },
+    {
+      "id": 1790512519396,
+      "action": "USER_LOGIN",
+      "entity_type": "system",
+      "entity_id": "officer1",
+      "actor_name": "Officer Ramesh (Roads)",
+      "actor_role": "officer",
+      "details": "Officer Ramesh (Roads) (Roads & Infrastructure) signed in",
+      "timestamp": "2026-09-27T12:35:18.474Z"
+    },
+    {
+      "id": 1790512519209,
+      "action": "USER_LOGIN",
+      "entity_type": "system",
+      "entity_id": "admin",
+      "actor_name": "Municipal Commissioner (Admin)",
+      "actor_role": "admin",
+      "details": "Municipal Commissioner (Admin) (All Departments) signed in",
+      "timestamp": "2026-09-27T12:35:18.416Z"
+    },
+    {
       "id": 1790508443536,
       "action": "USER_LOGIN",
       "entity_type": "system",
@@ -3836,7 +3925,1355 @@
   "nextComplaintNum": 27,
   "nextNotifId": 14,
   "dedupThresholdMeters": 50,
-  "roadHealthCache": [],
+  "roadHealthCache": [
+    {
+      "segment_id": "SEG-01",
+      "name": "Swargate – Bibwewadi Corridor",
+      "corridor_road": "Pune–Satara Road (NH-48 Urban)",
+      "ward_name": "Bibwewadi – Sahakarnagar Ward",
+      "length_km": 1.8,
+      "waypoints": [
+        [
+          18.5018,
+          73.856
+        ],
+        [
+          18.4985,
+          73.8542
+        ],
+        [
+          18.4975,
+          73.8538
+        ]
+      ],
+      "center": [
+        18.4985,
+        73.8542
+      ],
+      "score": 85,
+      "band": "green",
+      "status_label": "Good (Healthy Road)",
+      "insufficient_data": false,
+      "insufficient_reason": null,
+      "scoring_method": "Transparent Rule-Based Scoring Algorithm (Hackathon MVP — Not ML)",
+      "formula_explanation": "Starts at Base 100. Deducts points per unique unresolved physical issue by category & severity (Pothole: -5 to -22, Road Damage: -4 to -18, Waterlogging/Drain: -4 to -16, Other Corridor Hazard: -2 to -10) plus an age penalty (+1 pt per 3 days unresolved, max +6 pts/issue). Deduplicated sightings of the same issue are counted once. Resolved issues restore segment health.",
+      "base_score": 100,
+      "total_deduction": 15,
+      "active_unique_issues_count": 1,
+      "resolved_issues_count": 2,
+      "duplicate_sightings_ignored": 3,
+      "pothole_count": 1,
+      "road_damage_count": 0,
+      "waterlogging_count": 0,
+      "other_hazard_count": 0,
+      "deduction_breakdown": [
+        {
+          "complaint_id": "CE-202609-0021",
+          "id": 21,
+          "category": "Pothole",
+          "severity": "high",
+          "status": "new",
+          "description": "Test pothole near Swargate Bus Stand",
+          "age_days": 0.9,
+          "observation_count": 1,
+          "base_deduction": 15,
+          "age_deduction": 0,
+          "total_deduction": 15,
+          "first_detected_at": "2026-09-26T15:48:33.055Z",
+          "latitude": 18.5018,
+          "longitude": 73.856,
+          "is_simulated": false
+        }
+      ],
+      "active_issues": [
+        {
+          "id": 21,
+          "complaint_id": "CE-202609-0021",
+          "category": "Pothole",
+          "severity": "high",
+          "status": "new",
+          "description": "Test pothole near Swargate Bus Stand",
+          "latitude": 18.5018,
+          "longitude": 73.856,
+          "address": "Pune, Maharashtra (18.5018°N, 73.8560°E)",
+          "department_name": "Roads & Infrastructure",
+          "observation_count": 1,
+          "first_detected_at": "2026-09-26T15:48:33.055Z",
+          "is_simulated": false
+        }
+      ],
+      "complaint_history": [
+        {
+          "id": 21,
+          "complaint_id": "CE-202609-0021",
+          "category": "Pothole",
+          "severity": "high",
+          "status": "new",
+          "description": "Test pothole near Swargate Bus Stand",
+          "first_detected_at": "2026-09-26T15:48:33.055Z",
+          "resolved_at": null,
+          "observation_count": 1
+        },
+        {
+          "id": 1,
+          "complaint_id": "CE-202609-0001",
+          "category": "Pothole",
+          "severity": "critical",
+          "status": "resolved",
+          "description": "Deep pothole on Swargate-Bibwewadi road near Anand petrol pump. Approx 2 ft wide, causing vehicle damage.",
+          "first_detected_at": "2026-09-25T13:59:27.334Z",
+          "resolved_at": "2026-09-27T12:35:18.492Z",
+          "observation_count": 2
+        },
+        {
+          "id": 11,
+          "complaint_id": "CE-202609-0011",
+          "category": "Broken Streetlight",
+          "severity": "medium",
+          "status": "resolved",
+          "description": "Three consecutive streetlights non-functional on Bibwewadi main road. Area very dark at night.",
+          "first_detected_at": "2026-09-14T13:59:27.335Z",
+          "resolved_at": "2026-09-16T01:59:27.335Z",
+          "observation_count": 3
+        }
+      ],
+      "last_updated_at": "2026-09-27T12:35:18.492Z"
+    },
+    {
+      "segment_id": "SEG-02",
+      "name": "Bibwewadi – Katraj Ghat Stretch",
+      "corridor_road": "Satara Highway – Katraj Chowk",
+      "ward_name": "Katraj – Dhankawadi Ward",
+      "length_km": 3.1,
+      "waypoints": [
+        [
+          18.4975,
+          73.8538
+        ],
+        [
+          18.4892,
+          73.8503
+        ],
+        [
+          18.483,
+          73.8488
+        ],
+        [
+          18.4815,
+          73.8474
+        ],
+        [
+          18.4762,
+          73.8441
+        ]
+      ],
+      "center": [
+        18.483,
+        73.8488
+      ],
+      "score": 67,
+      "band": "yellow",
+      "status_label": "Fair (Moderate Wear)",
+      "insufficient_data": false,
+      "insufficient_reason": null,
+      "scoring_method": "Transparent Rule-Based Scoring Algorithm (Hackathon MVP — Not ML)",
+      "formula_explanation": "Starts at Base 100. Deducts points per unique unresolved physical issue by category & severity (Pothole: -5 to -22, Road Damage: -4 to -18, Waterlogging/Drain: -4 to -16, Other Corridor Hazard: -2 to -10) plus an age penalty (+1 pt per 3 days unresolved, max +6 pts/issue). Deduplicated sightings of the same issue are counted once. Resolved issues restore segment health.",
+      "base_score": 100,
+      "total_deduction": 33,
+      "active_unique_issues_count": 2,
+      "resolved_issues_count": 1,
+      "duplicate_sightings_ignored": 7,
+      "pothole_count": 1,
+      "road_damage_count": 0,
+      "waterlogging_count": 0,
+      "other_hazard_count": 1,
+      "deduction_breakdown": [
+        {
+          "complaint_id": "CE-202609-0002",
+          "id": 2,
+          "category": "Pothole",
+          "severity": "critical",
+          "status": "assigned",
+          "description": "Multiple potholes on Katraj Ghat stretch, dangerous for two-wheelers especially at night.",
+          "age_days": 3,
+          "observation_count": 2,
+          "base_deduction": 22,
+          "age_deduction": 1,
+          "total_deduction": 23,
+          "first_detected_at": "2026-09-24T11:35:27.334Z",
+          "latitude": 18.483,
+          "longitude": 73.8488,
+          "is_simulated": false
+        },
+        {
+          "complaint_id": "CE-202609-0016",
+          "id": 16,
+          "category": "Illegal Dumping",
+          "severity": "medium",
+          "status": "awaiting_verification",
+          "description": "Construction debris dumped illegally on footpath near Anand Nagar school.",
+          "age_days": 18.4,
+          "observation_count": 4,
+          "base_deduction": 4,
+          "age_deduction": 6,
+          "total_deduction": 10,
+          "first_detected_at": "2026-09-09T01:59:27.335Z",
+          "latitude": 18.4893,
+          "longitude": 73.8508,
+          "is_simulated": false
+        }
+      ],
+      "active_issues": [
+        {
+          "id": 2,
+          "complaint_id": "CE-202609-0002",
+          "category": "Pothole",
+          "severity": "critical",
+          "status": "assigned",
+          "description": "Multiple potholes on Katraj Ghat stretch, dangerous for two-wheelers especially at night.",
+          "latitude": 18.483,
+          "longitude": 73.8488,
+          "address": "Pune Municipal Ward · (18.4830°N, 73.8488°E)",
+          "department_name": "Roads & Infrastructure",
+          "observation_count": 2,
+          "first_detected_at": "2026-09-24T11:35:27.334Z",
+          "is_simulated": false
+        },
+        {
+          "id": 16,
+          "complaint_id": "CE-202609-0016",
+          "category": "Illegal Dumping",
+          "severity": "medium",
+          "status": "awaiting_verification",
+          "description": "Construction debris dumped illegally on footpath near Anand Nagar school.",
+          "latitude": 18.4893,
+          "longitude": 73.8508,
+          "address": "Pune Municipal Ward · (18.4895°N, 73.8510°E)",
+          "department_name": "Sanitation & Waste",
+          "observation_count": 4,
+          "first_detected_at": "2026-09-09T01:59:27.335Z",
+          "is_simulated": false
+        }
+      ],
+      "complaint_history": [
+        {
+          "id": 2,
+          "complaint_id": "CE-202609-0002",
+          "category": "Pothole",
+          "severity": "critical",
+          "status": "assigned",
+          "description": "Multiple potholes on Katraj Ghat stretch, dangerous for two-wheelers especially at night.",
+          "first_detected_at": "2026-09-24T11:35:27.334Z",
+          "resolved_at": null,
+          "observation_count": 2
+        },
+        {
+          "id": 12,
+          "complaint_id": "CE-202609-0012",
+          "category": "Broken Streetlight",
+          "severity": "medium",
+          "status": "closed",
+          "description": "Street light pole tilted and hanging loose near Katraj Circle. Hazard to pedestrians.",
+          "first_detected_at": "2026-09-13T11:35:27.335Z",
+          "resolved_at": "2026-09-14T23:35:27.335Z",
+          "observation_count": 4
+        },
+        {
+          "id": 16,
+          "complaint_id": "CE-202609-0016",
+          "category": "Illegal Dumping",
+          "severity": "medium",
+          "status": "awaiting_verification",
+          "description": "Construction debris dumped illegally on footpath near Anand Nagar school.",
+          "first_detected_at": "2026-09-09T01:59:27.335Z",
+          "resolved_at": null,
+          "observation_count": 4
+        }
+      ],
+      "last_updated_at": "2026-09-24T12:35:27.334Z"
+    },
+    {
+      "segment_id": "SEG-03",
+      "name": "Shivajinagar – Deccan Gymkhana",
+      "corridor_road": "Jangli Maharaj (JM) & FC Road",
+      "ward_name": "Shivajinagar – Ghole Road Ward",
+      "length_km": 2.2,
+      "waypoints": [
+        [
+          18.5308,
+          73.8474
+        ],
+        [
+          18.5295,
+          73.849
+        ],
+        [
+          18.5265,
+          73.8602
+        ]
+      ],
+      "center": [
+        18.5285,
+        73.8535
+      ],
+      "score": 43,
+      "band": "orange",
+      "status_label": "Poor (Needs Repair)",
+      "insufficient_data": false,
+      "insufficient_reason": null,
+      "scoring_method": "Transparent Rule-Based Scoring Algorithm (Hackathon MVP — Not ML)",
+      "formula_explanation": "Starts at Base 100. Deducts points per unique unresolved physical issue by category & severity (Pothole: -5 to -22, Road Damage: -4 to -18, Waterlogging/Drain: -4 to -16, Other Corridor Hazard: -2 to -10) plus an age penalty (+1 pt per 3 days unresolved, max +6 pts/issue). Deduplicated sightings of the same issue are counted once. Resolved issues restore segment health.",
+      "base_score": 100,
+      "total_deduction": 57,
+      "active_unique_issues_count": 5,
+      "resolved_issues_count": 1,
+      "duplicate_sightings_ignored": 2,
+      "pothole_count": 2,
+      "road_damage_count": 1,
+      "waterlogging_count": 1,
+      "other_hazard_count": 1,
+      "deduction_breakdown": [
+        {
+          "complaint_id": "CE-202609-0023",
+          "id": 23,
+          "category": "Pothole",
+          "severity": "high",
+          "status": "new",
+          "description": "Deep pothole near Fergusson College gate causing traffic hazard",
+          "age_days": 0.3,
+          "observation_count": 1,
+          "base_deduction": 15,
+          "age_deduction": 0,
+          "total_deduction": 15,
+          "first_detected_at": "2026-09-27T06:24:09.466Z",
+          "latitude": 18.5229,
+          "longitude": 73.8419,
+          "is_simulated": false
+        },
+        {
+          "complaint_id": "CE-202609-0022",
+          "id": 22,
+          "category": "Road obstruction",
+          "severity": "medium",
+          "status": "new",
+          "description": "Construction barrier left across main transit lane near Shivajinagar.",
+          "age_days": 0.8,
+          "observation_count": 1,
+          "base_deduction": 8,
+          "age_deduction": 0,
+          "total_deduction": 8,
+          "first_detected_at": "2026-09-26T16:22:44.069Z",
+          "latitude": 18.5321,
+          "longitude": 73.8489,
+          "is_simulated": false
+        },
+        {
+          "complaint_id": "CE-202609-0003",
+          "id": 3,
+          "category": "Pothole",
+          "severity": "medium",
+          "status": "in_progress",
+          "description": "Pothole near Deccan Gymkhana bus stop, road dug up but not repaired after water pipeline work.",
+          "age_days": 4.1,
+          "observation_count": 1,
+          "base_deduction": 10,
+          "age_deduction": 1,
+          "total_deduction": 11,
+          "first_detected_at": "2026-09-23T09:11:27.334Z",
+          "latitude": 18.5272,
+          "longitude": 73.8612,
+          "is_simulated": false
+        },
+        {
+          "complaint_id": "CE-202609-0010",
+          "id": 10,
+          "category": "Fallen Tree",
+          "severity": "high",
+          "status": "awaiting_verification",
+          "description": "Tree branch fallen on electricity wire near Deccan bus stop. Power line sagging dangerously.",
+          "age_days": 11.8,
+          "observation_count": 1,
+          "base_deduction": 7,
+          "age_deduction": 3,
+          "total_deduction": 10,
+          "first_detected_at": "2026-09-15T16:23:27.335Z",
+          "latitude": 18.5258,
+          "longitude": 73.8596,
+          "is_simulated": false
+        },
+        {
+          "complaint_id": "CE-202609-0015",
+          "id": 15,
+          "category": "Open Drain",
+          "severity": "medium",
+          "status": "in_progress",
+          "description": "Drain cover missing on Shivajinagar-Deccan stretch, visible open drain of 3 ft depth.",
+          "age_days": 17.3,
+          "observation_count": 3,
+          "base_deduction": 8,
+          "age_deduction": 5,
+          "total_deduction": 13,
+          "first_detected_at": "2026-09-10T04:23:27.335Z",
+          "latitude": 18.5297,
+          "longitude": 73.8492,
+          "is_simulated": false
+        }
+      ],
+      "active_issues": [
+        {
+          "id": 23,
+          "complaint_id": "CE-202609-0023",
+          "category": "Pothole",
+          "severity": "high",
+          "status": "new",
+          "description": "Deep pothole near Fergusson College gate causing traffic hazard",
+          "latitude": 18.5229,
+          "longitude": 73.8419,
+          "address": "FC Road, Pune",
+          "department_name": "Roads & Infrastructure",
+          "observation_count": 1,
+          "first_detected_at": "2026-09-27T06:24:09.466Z",
+          "is_simulated": false
+        },
+        {
+          "id": 22,
+          "complaint_id": "CE-202609-0022",
+          "category": "Road obstruction",
+          "severity": "medium",
+          "status": "new",
+          "description": "Construction barrier left across main transit lane near Shivajinagar.",
+          "latitude": 18.5321,
+          "longitude": 73.8489,
+          "address": "Pune, Maharashtra (18.5321°N, 73.8489°E)",
+          "department_name": "Roads & Infrastructure",
+          "observation_count": 1,
+          "first_detected_at": "2026-09-26T16:22:44.069Z",
+          "is_simulated": false
+        },
+        {
+          "id": 3,
+          "complaint_id": "CE-202609-0003",
+          "category": "Pothole",
+          "severity": "medium",
+          "status": "in_progress",
+          "description": "Pothole near Deccan Gymkhana bus stop, road dug up but not repaired after water pipeline work.",
+          "latitude": 18.5272,
+          "longitude": 73.8612,
+          "address": "Pune Municipal Ward · (18.5270°N, 73.8610°E)",
+          "department_name": "Roads & Infrastructure",
+          "observation_count": 1,
+          "first_detected_at": "2026-09-23T09:11:27.334Z",
+          "is_simulated": false
+        },
+        {
+          "id": 10,
+          "complaint_id": "CE-202609-0010",
+          "category": "Fallen Tree",
+          "severity": "high",
+          "status": "awaiting_verification",
+          "description": "Tree branch fallen on electricity wire near Deccan bus stop. Power line sagging dangerously.",
+          "latitude": 18.5258,
+          "longitude": 73.8596,
+          "address": "Pune Municipal Ward · (18.5260°N, 73.8598°E)",
+          "department_name": "Parks & Horticulture",
+          "observation_count": 1,
+          "first_detected_at": "2026-09-15T16:23:27.335Z",
+          "is_simulated": false
+        },
+        {
+          "id": 15,
+          "complaint_id": "CE-202609-0015",
+          "category": "Open Drain",
+          "severity": "medium",
+          "status": "in_progress",
+          "description": "Drain cover missing on Shivajinagar-Deccan stretch, visible open drain of 3 ft depth.",
+          "latitude": 18.5297,
+          "longitude": 73.8492,
+          "address": "Pune Municipal Ward · (18.5295°N, 73.8490°E)",
+          "department_name": "Drainage & Waterways",
+          "observation_count": 3,
+          "first_detected_at": "2026-09-10T04:23:27.335Z",
+          "is_simulated": false
+        }
+      ],
+      "complaint_history": [
+        {
+          "id": 23,
+          "complaint_id": "CE-202609-0023",
+          "category": "Pothole",
+          "severity": "high",
+          "status": "new",
+          "description": "Deep pothole near Fergusson College gate causing traffic hazard",
+          "first_detected_at": "2026-09-27T06:24:09.466Z",
+          "resolved_at": null,
+          "observation_count": 1
+        },
+        {
+          "id": 22,
+          "complaint_id": "CE-202609-0022",
+          "category": "Road obstruction",
+          "severity": "medium",
+          "status": "new",
+          "description": "Construction barrier left across main transit lane near Shivajinagar.",
+          "first_detected_at": "2026-09-26T16:22:44.069Z",
+          "resolved_at": null,
+          "observation_count": 1
+        },
+        {
+          "id": 3,
+          "complaint_id": "CE-202609-0003",
+          "category": "Pothole",
+          "severity": "medium",
+          "status": "in_progress",
+          "description": "Pothole near Deccan Gymkhana bus stop, road dug up but not repaired after water pipeline work.",
+          "first_detected_at": "2026-09-23T09:11:27.334Z",
+          "resolved_at": null,
+          "observation_count": 1
+        },
+        {
+          "id": 5,
+          "complaint_id": "CE-202609-0005",
+          "category": "Garbage",
+          "severity": "medium",
+          "status": "resolved",
+          "description": "Overflowing dustbins outside Shivajinagar station area. Waste spilling onto footpath.",
+          "first_detected_at": "2026-09-21T04:23:27.334Z",
+          "resolved_at": "2026-09-22T16:23:27.334Z",
+          "observation_count": 1
+        },
+        {
+          "id": 10,
+          "complaint_id": "CE-202609-0010",
+          "category": "Fallen Tree",
+          "severity": "high",
+          "status": "awaiting_verification",
+          "description": "Tree branch fallen on electricity wire near Deccan bus stop. Power line sagging dangerously.",
+          "first_detected_at": "2026-09-15T16:23:27.335Z",
+          "resolved_at": null,
+          "observation_count": 1
+        },
+        {
+          "id": 15,
+          "complaint_id": "CE-202609-0015",
+          "category": "Open Drain",
+          "severity": "medium",
+          "status": "in_progress",
+          "description": "Drain cover missing on Shivajinagar-Deccan stretch, visible open drain of 3 ft depth.",
+          "first_detected_at": "2026-09-10T04:23:27.335Z",
+          "resolved_at": null,
+          "observation_count": 3
+        }
+      ],
+      "last_updated_at": "2026-09-27T06:24:09.466Z"
+    },
+    {
+      "segment_id": "SEG-04",
+      "name": "Pune Station – Sangamwadi Road",
+      "corridor_road": "Dr. Ambedkar Rd – Sangamwadi Bridge",
+      "ward_name": "Dhole Patil – Yerawada Ward",
+      "length_km": 2.4,
+      "waypoints": [
+        [
+          18.5142,
+          73.8732
+        ],
+        [
+          18.511,
+          73.882
+        ],
+        [
+          18.5081,
+          73.8901
+        ]
+      ],
+      "center": [
+        18.511,
+        73.882
+      ],
+      "score": 75,
+      "band": "yellow",
+      "status_label": "Fair (Moderate Wear)",
+      "insufficient_data": false,
+      "insufficient_reason": null,
+      "scoring_method": "Transparent Rule-Based Scoring Algorithm (Hackathon MVP — Not ML)",
+      "formula_explanation": "Starts at Base 100. Deducts points per unique unresolved physical issue by category & severity (Pothole: -5 to -22, Road Damage: -4 to -18, Waterlogging/Drain: -4 to -16, Other Corridor Hazard: -2 to -10) plus an age penalty (+1 pt per 3 days unresolved, max +6 pts/issue). Deduplicated sightings of the same issue are counted once. Resolved issues restore segment health.",
+      "base_score": 100,
+      "total_deduction": 25,
+      "active_unique_issues_count": 2,
+      "resolved_issues_count": 1,
+      "duplicate_sightings_ignored": 2,
+      "pothole_count": 0,
+      "road_damage_count": 0,
+      "waterlogging_count": 1,
+      "other_hazard_count": 1,
+      "deduction_breakdown": [
+        {
+          "complaint_id": "CE-202609-0007",
+          "id": 7,
+          "category": "Waterlogging",
+          "severity": "critical",
+          "status": "new",
+          "description": "Severe waterlogging on Sangamwadi road after rain, water level reaching 1.5 ft. Traffic at standstill.",
+          "age_days": 8.5,
+          "observation_count": 3,
+          "base_deduction": 16,
+          "age_deduction": 2,
+          "total_deduction": 18,
+          "first_detected_at": "2026-09-18T23:35:27.335Z",
+          "latitude": 18.5088,
+          "longitude": 73.8903,
+          "is_simulated": false
+        },
+        {
+          "complaint_id": "CE-202609-0013",
+          "id": 13,
+          "category": "Broken Streetlight",
+          "severity": "low",
+          "status": "new",
+          "description": "Flickering street light outside Pune Railway Station gate no. 3.",
+          "age_days": 15.1,
+          "observation_count": 1,
+          "base_deduction": 2,
+          "age_deduction": 5,
+          "total_deduction": 7,
+          "first_detected_at": "2026-09-12T09:11:27.335Z",
+          "latitude": 18.5146,
+          "longitude": 73.8738,
+          "is_simulated": false
+        }
+      ],
+      "active_issues": [
+        {
+          "id": 7,
+          "complaint_id": "CE-202609-0007",
+          "category": "Waterlogging",
+          "severity": "critical",
+          "status": "new",
+          "description": "Severe waterlogging on Sangamwadi road after rain, water level reaching 1.5 ft. Traffic at standstill.",
+          "latitude": 18.5088,
+          "longitude": 73.8903,
+          "address": "Pune Municipal Ward · (18.5090°N, 73.8905°E)",
+          "department_name": "Drainage & Waterways",
+          "observation_count": 3,
+          "first_detected_at": "2026-09-18T23:35:27.335Z",
+          "is_simulated": false
+        },
+        {
+          "id": 13,
+          "complaint_id": "CE-202609-0013",
+          "category": "Broken Streetlight",
+          "severity": "low",
+          "status": "new",
+          "description": "Flickering street light outside Pune Railway Station gate no. 3.",
+          "latitude": 18.5146,
+          "longitude": 73.8738,
+          "address": "Pune Municipal Ward · (18.5148°N, 73.8740°E)",
+          "department_name": "Electrical & Lighting",
+          "observation_count": 1,
+          "first_detected_at": "2026-09-12T09:11:27.335Z",
+          "is_simulated": false
+        }
+      ],
+      "complaint_history": [
+        {
+          "id": 7,
+          "complaint_id": "CE-202609-0007",
+          "category": "Waterlogging",
+          "severity": "critical",
+          "status": "new",
+          "description": "Severe waterlogging on Sangamwadi road after rain, water level reaching 1.5 ft. Traffic at standstill.",
+          "first_detected_at": "2026-09-18T23:35:27.335Z",
+          "resolved_at": null,
+          "observation_count": 3
+        },
+        {
+          "id": 13,
+          "complaint_id": "CE-202609-0013",
+          "category": "Broken Streetlight",
+          "severity": "low",
+          "status": "new",
+          "description": "Flickering street light outside Pune Railway Station gate no. 3.",
+          "first_detected_at": "2026-09-12T09:11:27.335Z",
+          "resolved_at": null,
+          "observation_count": 1
+        },
+        {
+          "id": 17,
+          "complaint_id": "CE-202609-0017",
+          "category": "Illegal Dumping",
+          "severity": "medium",
+          "status": "resolved",
+          "description": "Old mattresses and furniture dumped near Sangamwadi bridge approach.",
+          "first_detected_at": "2026-09-07T23:35:27.335Z",
+          "resolved_at": "2026-09-09T11:35:27.335Z",
+          "observation_count": 1
+        }
+      ],
+      "last_updated_at": "2026-09-19T00:35:27.335Z"
+    },
+    {
+      "segment_id": "SEG-05",
+      "name": "Hadapsar – Solapur Road Corridor",
+      "corridor_road": "Pune–Solapur Highway (Hadapsar Gadital)",
+      "ward_name": "Hadapsar – Mundhwa Ward",
+      "length_km": 2.9,
+      "waypoints": [
+        [
+          18.504,
+          73.905
+        ],
+        [
+          18.5015,
+          73.918
+        ],
+        [
+          18.5008,
+          73.9175
+        ]
+      ],
+      "center": [
+        18.5015,
+        73.918
+      ],
+      "score": 75,
+      "band": "yellow",
+      "status_label": "Fair (Moderate Wear)",
+      "insufficient_data": false,
+      "insufficient_reason": null,
+      "scoring_method": "Transparent Rule-Based Scoring Algorithm (Hackathon MVP — Not ML)",
+      "formula_explanation": "Starts at Base 100. Deducts points per unique unresolved physical issue by category & severity (Pothole: -5 to -22, Road Damage: -4 to -18, Waterlogging/Drain: -4 to -16, Other Corridor Hazard: -2 to -10) plus an age penalty (+1 pt per 3 days unresolved, max +6 pts/issue). Deduplicated sightings of the same issue are counted once. Resolved issues restore segment health.",
+      "base_score": 100,
+      "total_deduction": 25,
+      "active_unique_issues_count": 2,
+      "resolved_issues_count": 0,
+      "duplicate_sightings_ignored": 3,
+      "pothole_count": 0,
+      "road_damage_count": 0,
+      "waterlogging_count": 1,
+      "other_hazard_count": 1,
+      "deduction_breakdown": [
+        {
+          "complaint_id": "CE-202609-0004",
+          "id": 4,
+          "category": "Garbage",
+          "severity": "high",
+          "status": "in_progress",
+          "description": "Large garbage mound near Hadapsar market, not cleared for 5+ days. Foul smell affecting nearby residents.",
+          "age_days": 5.2,
+          "observation_count": 4,
+          "base_deduction": 7,
+          "age_deduction": 1,
+          "total_deduction": 8,
+          "first_detected_at": "2026-09-22T06:47:27.334Z",
+          "latitude": 18.5013,
+          "longitude": 73.9178,
+          "is_simulated": false
+        },
+        {
+          "complaint_id": "CE-202609-0014",
+          "id": 14,
+          "category": "Open Drain",
+          "severity": "high",
+          "status": "assigned",
+          "description": "Open storm drain without cover near Hadapsar industrial area. Urgent concrete slab cover needed.",
+          "age_days": 16.2,
+          "observation_count": 1,
+          "base_deduction": 12,
+          "age_deduction": 5,
+          "total_deduction": 17,
+          "first_detected_at": "2026-09-11T06:47:27.335Z",
+          "latitude": 18.5008,
+          "longitude": 73.9175,
+          "is_simulated": false
+        }
+      ],
+      "active_issues": [
+        {
+          "id": 4,
+          "complaint_id": "CE-202609-0004",
+          "category": "Garbage",
+          "severity": "high",
+          "status": "in_progress",
+          "description": "Large garbage mound near Hadapsar market, not cleared for 5+ days. Foul smell affecting nearby residents.",
+          "latitude": 18.5013,
+          "longitude": 73.9178,
+          "address": "Pune Municipal Ward · (18.5015°N, 73.9180°E)",
+          "department_name": "Sanitation & Waste",
+          "observation_count": 4,
+          "first_detected_at": "2026-09-22T06:47:27.334Z",
+          "is_simulated": false
+        },
+        {
+          "id": 14,
+          "complaint_id": "CE-202609-0014",
+          "category": "Open Drain",
+          "severity": "high",
+          "status": "assigned",
+          "description": "Open storm drain without cover near Hadapsar industrial area. Urgent concrete slab cover needed.",
+          "latitude": 18.5008,
+          "longitude": 73.9175,
+          "address": "Pune Municipal Ward · (18.5008°N, 73.9175°E)",
+          "department_name": "Drainage & Waterways",
+          "observation_count": 1,
+          "first_detected_at": "2026-09-11T06:47:27.335Z",
+          "is_simulated": false
+        }
+      ],
+      "complaint_history": [
+        {
+          "id": 4,
+          "complaint_id": "CE-202609-0004",
+          "category": "Garbage",
+          "severity": "high",
+          "status": "in_progress",
+          "description": "Large garbage mound near Hadapsar market, not cleared for 5+ days. Foul smell affecting nearby residents.",
+          "first_detected_at": "2026-09-22T06:47:27.334Z",
+          "resolved_at": null,
+          "observation_count": 4
+        },
+        {
+          "id": 14,
+          "complaint_id": "CE-202609-0014",
+          "category": "Open Drain",
+          "severity": "high",
+          "status": "assigned",
+          "description": "Open storm drain without cover near Hadapsar industrial area. Urgent concrete slab cover needed.",
+          "first_detected_at": "2026-09-11T06:47:27.335Z",
+          "resolved_at": null,
+          "observation_count": 1
+        }
+      ],
+      "last_updated_at": "2026-09-22T07:47:27.334Z"
+    },
+    {
+      "segment_id": "SEG-06",
+      "name": "Kothrud – Karve Nagar Stretch",
+      "corridor_road": "Paud Road & Karve Road",
+      "ward_name": "Kothrud – Warje Ward",
+      "length_km": 2.5,
+      "waypoints": [
+        [
+          18.5074,
+          73.8077
+        ],
+        [
+          18.5105,
+          73.8165
+        ],
+        [
+          18.513,
+          73.8254
+        ]
+      ],
+      "center": [
+        18.5105,
+        73.8165
+      ],
+      "score": 64,
+      "band": "yellow",
+      "status_label": "Fair (Moderate Wear)",
+      "insufficient_data": false,
+      "insufficient_reason": null,
+      "scoring_method": "Transparent Rule-Based Scoring Algorithm (Hackathon MVP — Not ML)",
+      "formula_explanation": "Starts at Base 100. Deducts points per unique unresolved physical issue by category & severity (Pothole: -5 to -22, Road Damage: -4 to -18, Waterlogging/Drain: -4 to -16, Other Corridor Hazard: -2 to -10) plus an age penalty (+1 pt per 3 days unresolved, max +6 pts/issue). Deduplicated sightings of the same issue are counted once. Resolved issues restore segment health.",
+      "base_score": 100,
+      "total_deduction": 36,
+      "active_unique_issues_count": 2,
+      "resolved_issues_count": 2,
+      "duplicate_sightings_ignored": 3,
+      "pothole_count": 1,
+      "road_damage_count": 0,
+      "waterlogging_count": 1,
+      "other_hazard_count": 0,
+      "deduction_breakdown": [
+        {
+          "complaint_id": "CE-202609-0008",
+          "id": 8,
+          "category": "Waterlogging",
+          "severity": "high",
+          "status": "assigned",
+          "description": "Water accumulation near Karve Nagar underpass, vehicles getting stranded.",
+          "age_days": 9.6,
+          "observation_count": 1,
+          "base_deduction": 12,
+          "age_deduction": 3,
+          "total_deduction": 15,
+          "first_detected_at": "2026-09-17T21:11:27.335Z",
+          "latitude": 18.5128,
+          "longitude": 73.826,
+          "is_simulated": false
+        },
+        {
+          "complaint_id": "CE-202609-0019",
+          "id": 19,
+          "category": "Pothole",
+          "severity": "high",
+          "status": "new",
+          "description": "Road cave-in near Karve statue chowk. Pothole 3 ft deep, police barricade in place.",
+          "age_days": 21.7,
+          "observation_count": 3,
+          "base_deduction": 15,
+          "age_deduction": 6,
+          "total_deduction": 21,
+          "first_detected_at": "2026-09-05T18:47:27.335Z",
+          "latitude": 18.5133,
+          "longitude": 73.8254,
+          "is_simulated": false
+        }
+      ],
+      "active_issues": [
+        {
+          "id": 8,
+          "complaint_id": "CE-202609-0008",
+          "category": "Waterlogging",
+          "severity": "high",
+          "status": "assigned",
+          "description": "Water accumulation near Karve Nagar underpass, vehicles getting stranded.",
+          "latitude": 18.5128,
+          "longitude": 73.826,
+          "address": "Pune Municipal Ward · (18.5128°N, 73.8260°E)",
+          "department_name": "Drainage & Waterways",
+          "observation_count": 1,
+          "first_detected_at": "2026-09-17T21:11:27.335Z",
+          "is_simulated": false
+        },
+        {
+          "id": 19,
+          "complaint_id": "CE-202609-0019",
+          "category": "Pothole",
+          "severity": "high",
+          "status": "new",
+          "description": "Road cave-in near Karve statue chowk. Pothole 3 ft deep, police barricade in place.",
+          "latitude": 18.5133,
+          "longitude": 73.8254,
+          "address": "Pune Municipal Ward · (18.5135°N, 73.8256°E)",
+          "department_name": "Roads & Infrastructure",
+          "observation_count": 3,
+          "first_detected_at": "2026-09-05T18:47:27.335Z",
+          "is_simulated": false
+        }
+      ],
+      "complaint_history": [
+        {
+          "id": 6,
+          "complaint_id": "CE-202609-0006",
+          "category": "Garbage",
+          "severity": "low",
+          "status": "closed",
+          "description": "Scattered plastic waste behind Kothrud bus depot compound wall.",
+          "first_detected_at": "2026-09-20T01:59:27.335Z",
+          "resolved_at": "2026-09-21T13:59:27.335Z",
+          "observation_count": 2
+        },
+        {
+          "id": 8,
+          "complaint_id": "CE-202609-0008",
+          "category": "Waterlogging",
+          "severity": "high",
+          "status": "assigned",
+          "description": "Water accumulation near Karve Nagar underpass, vehicles getting stranded.",
+          "first_detected_at": "2026-09-17T21:11:27.335Z",
+          "resolved_at": null,
+          "observation_count": 1
+        },
+        {
+          "id": 18,
+          "complaint_id": "CE-202609-0018",
+          "category": "Stray Animals",
+          "severity": "medium",
+          "status": "closed",
+          "description": "Stray cattle obstructing traffic near Kothrud market area.",
+          "first_detected_at": "2026-09-06T21:11:27.335Z",
+          "resolved_at": "2026-09-08T09:11:27.335Z",
+          "observation_count": 1
+        },
+        {
+          "id": 19,
+          "complaint_id": "CE-202609-0019",
+          "category": "Pothole",
+          "severity": "high",
+          "status": "new",
+          "description": "Road cave-in near Karve statue chowk. Pothole 3 ft deep, police barricade in place.",
+          "first_detected_at": "2026-09-05T18:47:27.335Z",
+          "resolved_at": null,
+          "observation_count": 3
+        }
+      ],
+      "last_updated_at": "2026-09-21T13:59:27.335Z"
+    },
+    {
+      "segment_id": "SEG-07",
+      "name": "Airport Road – Viman Nagar Corridor",
+      "corridor_road": "Pune–Nagar Highway (Viman Nagar)",
+      "ward_name": "Nagar Road – Vadgaonsheri Ward",
+      "length_km": 3.4,
+      "waypoints": [
+        [
+          18.5308,
+          73.8997
+        ],
+        [
+          18.548,
+          73.908
+        ],
+        [
+          18.5642,
+          73.9145
+        ]
+      ],
+      "center": [
+        18.555,
+        73.911
+      ],
+      "score": 71,
+      "band": "yellow",
+      "status_label": "Fair (Moderate Wear)",
+      "insufficient_data": false,
+      "insufficient_reason": null,
+      "scoring_method": "Transparent Rule-Based Scoring Algorithm (Hackathon MVP — Not ML)",
+      "formula_explanation": "Starts at Base 100. Deducts points per unique unresolved physical issue by category & severity (Pothole: -5 to -22, Road Damage: -4 to -18, Waterlogging/Drain: -4 to -16, Other Corridor Hazard: -2 to -10) plus an age penalty (+1 pt per 3 days unresolved, max +6 pts/issue). Deduplicated sightings of the same issue are counted once. Resolved issues restore segment health.",
+      "base_score": 100,
+      "total_deduction": 29,
+      "active_unique_issues_count": 2,
+      "resolved_issues_count": 0,
+      "duplicate_sightings_ignored": 0,
+      "pothole_count": 0,
+      "road_damage_count": 0,
+      "waterlogging_count": 0,
+      "other_hazard_count": 2,
+      "deduction_breakdown": [
+        {
+          "complaint_id": "CE-202609-0009",
+          "id": 9,
+          "category": "Fallen Tree",
+          "severity": "critical",
+          "status": "in_progress",
+          "description": "Large rain tree fallen across Viman Nagar main road blocking both lanes. Emergency clearance needed.",
+          "age_days": 10.7,
+          "observation_count": 1,
+          "base_deduction": 10,
+          "age_deduction": 3,
+          "total_deduction": 13,
+          "first_detected_at": "2026-09-16T18:47:27.335Z",
+          "latitude": 18.564,
+          "longitude": 73.9154,
+          "is_simulated": false
+        },
+        {
+          "complaint_id": "CE-202609-0020",
+          "id": 20,
+          "category": "Garbage",
+          "severity": "critical",
+          "status": "assigned",
+          "description": "Uncollected municipal waste in Viman Nagar sector 4 spilling onto main road.",
+          "age_days": 22.8,
+          "observation_count": 1,
+          "base_deduction": 10,
+          "age_deduction": 6,
+          "total_deduction": 16,
+          "first_detected_at": "2026-09-04T16:23:27.335Z",
+          "latitude": 18.5645,
+          "longitude": 73.9148,
+          "is_simulated": false
+        }
+      ],
+      "active_issues": [
+        {
+          "id": 9,
+          "complaint_id": "CE-202609-0009",
+          "category": "Fallen Tree",
+          "severity": "critical",
+          "status": "in_progress",
+          "description": "Large rain tree fallen across Viman Nagar main road blocking both lanes. Emergency clearance needed.",
+          "latitude": 18.564,
+          "longitude": 73.9154,
+          "address": "Pune Municipal Ward · (18.5638°N, 73.9152°E)",
+          "department_name": "Parks & Horticulture",
+          "observation_count": 1,
+          "first_detected_at": "2026-09-16T18:47:27.335Z",
+          "is_simulated": false
+        },
+        {
+          "id": 20,
+          "complaint_id": "CE-202609-0020",
+          "category": "Garbage",
+          "severity": "critical",
+          "status": "assigned",
+          "description": "Uncollected municipal waste in Viman Nagar sector 4 spilling onto main road.",
+          "latitude": 18.5645,
+          "longitude": 73.9148,
+          "address": "Pune Municipal Ward · (18.5645°N, 73.9148°E)",
+          "department_name": "Sanitation & Waste",
+          "observation_count": 1,
+          "first_detected_at": "2026-09-04T16:23:27.335Z",
+          "is_simulated": false
+        }
+      ],
+      "complaint_history": [
+        {
+          "id": 9,
+          "complaint_id": "CE-202609-0009",
+          "category": "Fallen Tree",
+          "severity": "critical",
+          "status": "in_progress",
+          "description": "Large rain tree fallen across Viman Nagar main road blocking both lanes. Emergency clearance needed.",
+          "first_detected_at": "2026-09-16T18:47:27.335Z",
+          "resolved_at": null,
+          "observation_count": 1
+        },
+        {
+          "id": 20,
+          "complaint_id": "CE-202609-0020",
+          "category": "Garbage",
+          "severity": "critical",
+          "status": "assigned",
+          "description": "Uncollected municipal waste in Viman Nagar sector 4 spilling onto main road.",
+          "first_detected_at": "2026-09-04T16:23:27.335Z",
+          "resolved_at": null,
+          "observation_count": 1
+        }
+      ],
+      "last_updated_at": "2026-09-16T19:47:27.335Z"
+    },
+    {
+      "segment_id": "SEG-08",
+      "name": "Nigdi – Baner Highway Stretch",
+      "corridor_road": "Route 104 — Baner-Balewadi Corridor",
+      "ward_name": "Aundh – Baner Ward",
+      "length_km": 4,
+      "waypoints": [
+        [
+          18.559,
+          73.7868
+        ],
+        [
+          18.572,
+          73.775
+        ],
+        [
+          18.585,
+          73.762
+        ]
+      ],
+      "center": [
+        18.572,
+        73.775
+      ],
+      "score": null,
+      "band": "insufficient_data",
+      "status_label": "Insufficient Data",
+      "insufficient_data": true,
+      "insufficient_reason": "Assigned transit bus (PMC-104) is currently in maintenance/offline and no verified road surface inspections or complaints have been recorded on this corridor within the evaluation window.",
+      "scoring_method": "Rule-Based Municipal Road Surface Index (Hackathon MVP — Not ML)",
+      "formula_explanation": "Score cannot be computed when 0 verified camera scans or citizen inspections exist on the corridor. Displays \"Insufficient Data\" rather than inventing a synthetic score.",
+      "base_score": 100,
+      "total_deduction": 0,
+      "active_unique_issues_count": 0,
+      "resolved_issues_count": 0,
+      "duplicate_sightings_ignored": 0,
+      "pothole_count": 0,
+      "road_damage_count": 0,
+      "waterlogging_count": 0,
+      "other_hazard_count": 0,
+      "deduction_breakdown": [],
+      "active_issues": [],
+      "complaint_history": [],
+      "last_updated_at": "2026-09-26T07:59:27.334Z"
+    },
+    {
+      "segment_id": "SEG-LOCAL-1709-8207",
+      "name": "Local Municipal Stretch (17.088°N, 82.071°E)",
+      "corridor_road": "Pune Municipal Road Sector (17.088, 82.071)",
+      "ward_name": "Pune Municipal Sector",
+      "length_km": 1.2,
+      "waypoints": [
+        [
+          17.08518,
+          82.06786
+        ],
+        [
+          17.08818,
+          82.07086
+        ],
+        [
+          17.09118,
+          82.07386
+        ]
+      ],
+      "center": [
+        17.08818,
+        82.07086
+      ],
+      "score": 96,
+      "band": "green",
+      "status_label": "Good (Healthy Road)",
+      "insufficient_data": false,
+      "insufficient_reason": null,
+      "scoring_method": "Transparent Rule-Based Scoring Algorithm (Hackathon MVP — Not ML)",
+      "formula_explanation": "Starts at Base 100. Deducts points per unique unresolved physical issue by category & severity (Pothole: -5 to -22, Road Damage: -4 to -18, Waterlogging/Drain: -4 to -16, Other Corridor Hazard: -2 to -10) plus an age penalty (+1 pt per 3 days unresolved, max +6 pts/issue). Deduplicated sightings of the same issue are counted once. Resolved issues restore segment health.",
+      "base_score": 100,
+      "total_deduction": 4,
+      "active_unique_issues_count": 1,
+      "resolved_issues_count": 0,
+      "duplicate_sightings_ignored": 0,
+      "pothole_count": 0,
+      "road_damage_count": 0,
+      "waterlogging_count": 0,
+      "other_hazard_count": 1,
+      "deduction_breakdown": [
+        {
+          "complaint_id": "CE-202609-0026",
+          "id": 26,
+          "category": "Garbage",
+          "severity": "medium",
+          "status": "new",
+          "description": "asdfg",
+          "age_days": 0.1,
+          "observation_count": 1,
+          "base_deduction": 4,
+          "age_deduction": 0,
+          "total_deduction": 4,
+          "first_detected_at": "2026-09-27T11:02:39.306Z",
+          "latitude": 17.08818,
+          "longitude": 82.070859,
+          "is_simulated": false
+        }
+      ],
+      "active_issues": [
+        {
+          "id": 26,
+          "complaint_id": "CE-202609-0026",
+          "category": "Garbage",
+          "severity": "medium",
+          "status": "new",
+          "description": "asdfg",
+          "latitude": 17.08818,
+          "longitude": 82.070859,
+          "address": "Pune (17.0882°N, 82.0709°E)",
+          "department_name": "Sanitation & Waste",
+          "observation_count": 1,
+          "first_detected_at": "2026-09-27T11:02:39.306Z",
+          "is_simulated": false
+        }
+      ],
+      "complaint_history": [
+        {
+          "id": 26,
+          "complaint_id": "CE-202609-0026",
+          "category": "Garbage",
+          "severity": "medium",
+          "status": "new",
+          "description": "asdfg",
+          "first_detected_at": "2026-09-27T11:02:39.306Z",
+          "resolved_at": null,
+          "observation_count": 1
+        }
+      ],
+      "last_updated_at": "2026-09-27T11:02:39.306Z"
+    },
+    {
+      "segment_id": "SEG-LOCAL-1858-7379",
+      "name": "Local Municipal Stretch (18.584°N, 73.791°E)",
+      "corridor_road": "Pune Municipal Road Sector (18.584, 73.791)",
+      "ward_name": "Pune Municipal Sector",
+      "length_km": 1.2,
+      "waypoints": [
+        [
+          18.5812,
+          73.7882
+        ],
+        [
+          18.5842,
+          73.7912
+        ],
+        [
+          18.5872,
+          73.7942
+        ]
+      ],
+      "center": [
+        18.5842,
+        73.7912
+      ],
+      "score": 85,
+      "band": "green",
+      "status_label": "Good (Healthy Road)",
+      "insufficient_data": false,
+      "insufficient_reason": null,
+      "scoring_method": "Transparent Rule-Based Scoring Algorithm (Hackathon MVP — Not ML)",
+      "formula_explanation": "Starts at Base 100. Deducts points per unique unresolved physical issue by category & severity (Pothole: -5 to -22, Road Damage: -4 to -18, Waterlogging/Drain: -4 to -16, Other Corridor Hazard: -2 to -10) plus an age penalty (+1 pt per 3 days unresolved, max +6 pts/issue). Deduplicated sightings of the same issue are counted once. Resolved issues restore segment health.",
+      "base_score": 100,
+      "total_deduction": 15,
+      "active_unique_issues_count": 1,
+      "resolved_issues_count": 0,
+      "duplicate_sightings_ignored": 1,
+      "pothole_count": 1,
+      "road_damage_count": 0,
+      "waterlogging_count": 0,
+      "other_hazard_count": 0,
+      "deduction_breakdown": [
+        {
+          "complaint_id": "CE-202609-0025",
+          "id": 25,
+          "category": "Pothole",
+          "severity": "high",
+          "status": "new",
+          "description": "Deep pothole near Fergusson College gate causing traffic hazard",
+          "age_days": 0.3,
+          "observation_count": 1,
+          "base_deduction": 15,
+          "age_deduction": 0,
+          "total_deduction": 15,
+          "first_detected_at": "2026-09-27T06:26:40.410Z",
+          "latitude": 18.5842,
+          "longitude": 73.7912,
+          "is_simulated": false
+        }
+      ],
+      "active_issues": [
+        {
+          "id": 25,
+          "complaint_id": "CE-202609-0025",
+          "category": "Pothole",
+          "severity": "high",
+          "status": "new",
+          "description": "Deep pothole near Fergusson College gate causing traffic hazard",
+          "latitude": 18.5842,
+          "longitude": 73.7912,
+          "address": "Baner-Pashan Link Road, Pune",
+          "department_name": "Roads & Infrastructure",
+          "observation_count": 1,
+          "first_detected_at": "2026-09-27T06:26:40.410Z",
+          "is_simulated": false
+        }
+      ],
+      "complaint_history": [
+        {
+          "id": 25,
+          "complaint_id": "CE-202609-0025",
+          "category": "Pothole",
+          "severity": "high",
+          "status": "new",
+          "description": "Deep pothole near Fergusson College gate causing traffic hazard",
+          "first_detected_at": "2026-09-27T06:26:40.410Z",
+          "resolved_at": null,
+          "observation_count": 1
+        },
+        {
+          "id": 24,
+          "complaint_id": "CE-202609-0024",
+          "category": "Pothole",
+          "severity": "high",
+          "status": "new",
+          "description": "Deep pothole near Fergusson College gate causing traffic hazard",
+          "first_detected_at": "2026-09-27T06:25:23.763Z",
+          "resolved_at": null,
+          "observation_count": 1
+        }
+      ],
+      "last_updated_at": "2026-09-27T06:26:40.410Z"
+    }
+  ],
   "revokedTokens": [
     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJvZmZpY2VyMiIsInVzZXJJZCI6MywianRpIjoiNjBiNDQ4MTUtYzNmMC00MGMwLThhZGQtMTk4MmQ4NjIxM2VkIiwiaWF0IjoxNzkwNDkwMjQ5LCJleHAiOjE3OTA1NzY2NDl9.0yGbb2ECPU1zxz6qKDEgy3btHWOUxoAQaiNjSHCzzIo",
     "60b44815-c3f0-40c0-8add-1982d86213ed",
@@ -3853,7 +5290,11 @@
     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJvZmZpY2VyMiIsInVzZXJJZCI6MywianRpIjoiZDdiZjI0MzMtYWZiZC00MDAzLTgyYTAtNTU0MmQwMmE0Mjg5IiwiaWF0IjoxNzkwNTA0Nzk5LCJleHAiOjE3OTA1OTExOTl9.j_ga8OwQbni2YIMUnQHl9gxIUa1KzC4n3Eis63QtgUI",
     "d7bf2433-afbd-4003-82a0-5542d02a4289",
     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJvZmZpY2VyMiIsInVzZXJJZCI6MywianRpIjoiYzdmMzIzMjAtYzgxNS00N2M2LWE2ZWQtMmJmZjEzYzgyMzRhIiwiaWF0IjoxNzkwNTA2OTkyLCJleHAiOjE3OTA1OTMzOTJ9.M3EfUoQ_ClE8dNiwl0Fno2f7Aa8CgTHNHpkob--Jdvs",
-    "c7f32320-c815-47c6-a6ed-2bff13c8234a"
+    "c7f32320-c815-47c6-a6ed-2bff13c8234a",
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJvZmZpY2VyMSIsInVzZXJJZCI6MiwianRpIjoiZDFkOTFlNGEtMGUxZS00NzM4LWI2ZTAtZmE0MmVmMTBlZDYzIiwiaWF0IjoxNzkwNTEyNTE4LCJleHAiOjE3OTA1OTg5MTh9.S9TuKaRCZBEkfWwEdQGZGZ285oQGCoFIAuuakdkDPds",
+    "d1d91e4a-0e1e-4738-b6e0-fa42ef10ed63",
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJvZmZpY2VyMSIsInVzZXJJZCI6MiwianRpIjoiNzU0MWRkNjgtZjhiZS00NmU3LThjNDAtNTYwZmQ1NWMzNjkzIiwiaWF0IjoxNzkwNTEyNTM1LCJleHAiOjE3OTA1OTg5MzV9.wpZ1AxEQ7XkEj1KL329IbWzpH2oOP2Afdc31SuwshRU",
+    "7541dd68-f8be-46e7-8c40-560fd55c3693"
   ],
-  "updatedAt": "2026-09-27T11:27:22.968Z"
+  "updatedAt": "2026-09-27T12:35:35.566Z"
 }
